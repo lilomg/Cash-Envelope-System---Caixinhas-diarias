@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Caixinhas Diárias - Finanças Empresariais</title>
+    <title>Caixas Diárias - Gestão Financeira Empresarial</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Google Identity Services (GIS) API para Login -->
+    <!-- Google Identity Services (GIS) API -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <script>
@@ -53,45 +53,72 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col font-sans transition-colors duration-200">
 
-    <!-- Header / Navbar -->
+    <!-- Header / Navbar Reformulado (Título em cima, Opções na linha de baixo) -->
     <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
-            <div class="flex items-center space-x-3">
-                <div class="bg-emerald-600 text-white p-2.5 rounded-xl shadow-md">
-                    <i class="fa-solid font-bold fa-vault text-xl"></i>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
+            
+            <!-- LINHA 1 (TOPO): Título da Aplicação, Logo e Nome da Empresa -->
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-2.5">
+                <div class="flex items-center space-x-3">
+                    <div id="companyLogoContainer" class="bg-emerald-600 text-white p-2 rounded-xl shadow-md flex items-center justify-center w-11 h-11 overflow-hidden shrink-0">
+                        <i id="defaultVaultIcon" class="fa-solid font-bold fa-vault text-xl"></i>
+                        <img id="companyLogoImg" src="" alt="Logo" class="hidden w-full h-full object-cover rounded-lg">
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 id="brandTitle" class="text-xl font-extrabold leading-tight text-slate-900 dark:text-white">Caixas Diárias</h1>
+                            <button onclick="openCompanyModal()" title="Personalizar Empresa e Logo" class="text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 text-xs p-1 transition">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        </div>
+                        <p id="companySubtext" class="text-xs text-slate-500 dark:text-slate-400 font-medium">Método de Alocação para Empresas</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-lg font-bold leading-tight text-slate-900 dark:text-white">CaixasDiárias</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Método de Alocação para Empresas</p>
+
+                <!-- Tag Visual de Versão / Badge de Status -->
+                <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-semibold bg-slate-100 dark:bg-slate-700/50 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-600">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Sistema de Gestão Financeira</span>
                 </div>
             </div>
 
-            <!-- Controles do Topo -->
-            <div class="flex items-center space-x-1.5 sm:space-x-3">
-                <!-- Status Google Sheets -->
-                <button onclick="openGoogleModal()" id="googleConnectBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 transition flex items-center gap-1.5">
-                    <i id="googleStatusIcon" class="fa-solid fa-file-excel text-emerald-600"></i>
-                    <span id="googleStatusText" class="hidden sm:inline">Vincular Planilha Google</span>
-                </button>
-                <button id="themeToggleBtn" onclick="toggleDarkMode()" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-2">
-                    <i class="fa-solid fa-moon dark:hidden text-amber-500 text-sm"></i>
-                    <i class="fa-solid fa-sun hidden dark:block text-amber-400 text-sm"></i>
-                    <span class="hidden md:inline dark:hidden">Modo Escuro</span>
-                    <span class="hidden md:inline hidden dark:inline">Modo Claro</span>
-                </button>
-                <button onclick="openWithdrawalModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-hand-holding-dollar"></i>
-                    <span class="hidden sm:inline">Registrar Retirada</span>
-                </button>
-                <button onclick="openBackupModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-database"></i>
-                    <span class="hidden sm:inline">Backup</span>
-                </button>
-                <button onclick="openBoxModal()" class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 shadow transition flex items-center gap-1.5">
+            <!-- LINHA 2 (ABAIXO): Menu de Ações e Controles -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+                <div class="flex items-center space-x-1.5 sm:space-x-2 flex-wrap gap-y-1.5">
+                    <!-- Status Google Sheets / Cloud -->
+                    <button onclick="openGoogleModal()" id="googleConnectBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 transition flex items-center gap-1.5">
+                        <i id="googleStatusIcon" class="fa-solid fa-cloud text-emerald-600"></i>
+                        <span id="googleStatusText" class="inline">Google Cloud / Sheets</span>
+                    </button>
+
+                    <!-- Toggle Modo Claro / Escuro -->
+                    <button id="themeToggleBtn" onclick="toggleDarkMode()" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-moon dark:hidden text-amber-500 text-sm"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-amber-400 text-sm"></i>
+                        <span class="inline dark:hidden">Modo Escuro</span>
+                        <span class="hidden dark:inline">Modo Claro</span>
+                    </button>
+
+                    <!-- Botão Registrar Retirada -->
+                    <button onclick="openWithdrawalModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                        <span>Registrar Retirada</span>
+                    </button>
+
+                    <!-- Botão Backup -->
+                    <button onclick="openBackupModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-database"></i>
+                        <span>Backup</span>
+                    </button>
+                </div>
+
+                <!-- Botão Destaque: Nova Caixinha -->
+                <button onclick="openBoxModal()" class="px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 shadow transition flex items-center gap-1.5 shrink-0">
                     <i class="fa-solid fa-plus"></i>
                     <span>Nova Caixinha</span>
                 </button>
             </div>
+
         </div>
     </header>
 
@@ -122,7 +149,6 @@
 
             <!-- Status do Dia em Destaque -->
             <div id="dayWorkStatus" class="w-full md:w-auto px-4 py-2 rounded-xl text-center text-xs font-semibold flex items-center justify-center gap-2">
-                <!-- Inserido dinamicamente -->
             </div>
         </section>
 
@@ -285,7 +311,7 @@
             </div>
         </section>
 
-        <!-- ABA 2: GERENCIAMENTO DE CAIXINHAS (AGRUPADAS POR TIPO DE DESPESA) -->
+        <!-- ABA 2: GERENCIAMENTO DE CAIXINHAS -->
         <section id="viewBoxes" class="hidden space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div>
@@ -352,27 +378,80 @@
                                 <th class="p-3.5 text-center">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="withdrawalsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/60 text-xs text-slate-700 dark:text-slate-300">
+                        <tbody id="withdrawalsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-xs">
                         </tbody>
                     </table>
                 </div>
             </div>
         </section>
-
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 text-center text-xs text-slate-500">
-        <p>CaixasDiárias © - Sistema de Alocação de Recurso Diário com Sincronização Google Sheets</p>
+    <!-- Rodapé com Copyrights de Danilo Silvano de Lacerda -->
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
+            <div>
+                © 2026 <strong>Caixas Diárias</strong>. Todos os direitos reservados.
+            </div>
+            <div>
+                Desenvolvido por <strong>Danilo Silvano de Lacerda</strong> | <a href="mailto:lilo03br@yahoo.com.br" class="text-emerald-600 hover:underline">lilo03br@yahoo.com.br</a>
+            </div>
+        </div>
     </footer>
 
-    <!-- MODAL: GOOGLE SHEETS / PLANILHA GOOGLE -->
+    <!-- MODAL: PERSONALIZAR EMPRESA E LOGO -->
+    <div id="companyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-building text-emerald-600"></i>
+                    Personalizar Empresa & Logo
+                </h3>
+                <button onclick="closeCompanyModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveCompanySettings(event)" class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome da Empresa</label>
+                    <input type="text" id="companyNameInput" placeholder="Ex: Minha Empresa Ltda" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Subtítulo / Descrição Curta</label>
+                    <input type="text" id="companySubtextInput" placeholder="Ex: Gestão Financeira Diária" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">URL da Logo da Empresa (ou Upload)</label>
+                    <input type="text" id="companyLogoUrlInput" placeholder="https://exemplo.com/logo.png" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    
+                    <div class="mt-2 flex items-center gap-2">
+                        <label class="px-3 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer border border-slate-300 dark:border-slate-600 transition">
+                            <i class="fa-solid fa-upload mr-1"></i> Carregar do Computador
+                            <input type="file" id="companyLogoFileInput" accept="image/*" onchange="handleLogoFileUpload(event)" class="hidden">
+                        </label>
+                        <button type="button" onclick="removeCompanyLogo()" class="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition">
+                            Remover Logo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeCompanyModal()" class="px-4 py-2 font-semibold text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow">Salvar Personalização</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: GOOGLE CLOUD & SHEETS INTEGRATION -->
     <div id="googleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
                 <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-file-excel text-emerald-600"></i>
-                    Vincular Conta & Planilha Google
+                    <i class="fa-solid fa-cloud text-emerald-600"></i>
+                    Integração Google Cloud & Sheets
                 </h3>
                 <button onclick="closeGoogleModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -380,30 +459,30 @@
             </div>
 
             <div class="mt-4 space-y-4 text-xs text-slate-600 dark:text-slate-300">
-                <p>Armazene seus dados diretamente em uma <strong>Planilha do Google (Google Sheets)</strong> vinculada à sua Conta Google para usar como banco de dados online.</p>
+                <p>Conecte sua <strong>Conta Google Cloud</strong> para sincronizar dados em tempo real com uma <strong>Planilha do Google Sheets</strong> ou banco de dados no Google Cloud Drive.</p>
 
                 <div id="googleUserSection" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <i class="fa-brands fa-google text-xl text-emerald-600"></i>
+                        <i class="fa-brands fa-google text-2xl text-emerald-600"></i>
                         <div>
                             <p id="googleUserName" class="font-bold text-slate-800 dark:text-white">Conta Google Não Conectada</p>
-                            <p id="googleUserEmail" class="text-[11px] text-slate-400">Vinculação opcional</p>
+                            <p id="googleUserEmail" class="text-[11px] text-slate-400">Clique para vincular sua conta</p>
                         </div>
                     </div>
                     <button id="googleAuthBtn" onclick="authenticateGoogle()" class="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow transition">
-                        Conectar Google
+                        Vincular Google
                     </button>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">URL Webhook / Google Apps Script (Sincronizador da Planilha):</label>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">URL do Endpoint Webhook / Google Apps Script:</label>
                     <input type="text" id="googleSheetScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    <p class="text-[10px] text-slate-400 mt-1">Insira a URL do seu Google Apps Script publicado para sincronizar com sua planilha em tempo real.</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Cole aqui o Webhook do seu Google Apps Script publicado para gravar cada movimentação direto na sua planilha online do Google Cloud.</p>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
                     <button type="button" onclick="closeGoogleModal()" class="px-4 py-2 font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancelar</button>
-                    <button type="button" onclick="saveGoogleSettings()" class="px-4 py-2 font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow">Salvar Vinculação</button>
+                    <button type="button" onclick="saveGoogleSettings()" class="px-4 py-2 font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow">Salvar Integração</button>
                 </div>
             </div>
         </div>
@@ -618,9 +697,9 @@
         <span id="toastMsg">Mensagem do sistema</span>
     </div>
 
-    <!-- SCRIPT DE LÓGICA DO APLICATIVO -->
+    <!-- SCRIPT PRINCIPAL DE LÓGICA DO APLICATIVO -->
     <script type="module">
-        // Configurações Padrão de Caixinhas por Categorias
+        // Caixinhas Padrão Inicial
         const DEFAULT_BOXES = [
             { id: 'box-1', name: 'Aluguel do Imóvel', category: 'Custos Fixos da Empresa', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#3b82f6', icon: 'fa-house' },
             { id: 'box-2', name: 'Energia & Água', category: 'Custos Fixos da Empresa', dailyTarget: 25, activeDays: [1, 2, 3, 4, 5], color: '#eab308', icon: 'fa-bolt' },
@@ -641,8 +720,11 @@
 
         const appState = {
             currentDate: getTodayString(),
-            activeFilter: 'all', // 'all', 'completed' (atingidas), 'pending' (não atingidas)
-            selectedCategoryFilter: 'all', // 'all' ou nome da categoria
+            activeFilter: 'all', 
+            selectedCategoryFilter: 'all', 
+            companyName: localStorage.getItem('caixas_company_name') || '',
+            companySubtext: localStorage.getItem('caixas_company_subtext') || 'Método de Alocação para Empresas',
+            companyLogo: localStorage.getItem('caixas_company_logo') || '',
             boxes: [],
             allocations: {},
             withdrawals: [],
@@ -651,7 +733,6 @@
             googleScriptUrl: localStorage.getItem('caixas_google_script_url') || ''
         };
 
-        // Salvar localmente e acionar sincronização
         function saveBoxesToStorage() {
             localStorage.setItem('caixas_boxes', JSON.stringify(appState.boxes));
             syncToGoogleSheet();
@@ -668,243 +749,258 @@
         }
 
         function loadLocalStorage() {
-            const b = localStorage.getItem('caixas_boxes');
-            const a = localStorage.getItem('caixas_allocations');
-            const w = localStorage.getItem('caixas_withdrawals');
+            const savedBoxes = localStorage.getItem('caixas_boxes');
+            if (savedBoxes) {
+                try { appState.boxes = JSON.parse(savedBoxes); } catch(e) { appState.boxes = DEFAULT_BOXES; }
+            } else {
+                appState.boxes = DEFAULT_BOXES;
+            }
 
-            appState.boxes = b ? JSON.parse(b) : [...DEFAULT_BOXES];
-            appState.allocations = a ? JSON.parse(a) : {};
-            appState.withdrawals = w ? JSON.parse(w) : [];
-            
-            const savedUser = localStorage.getItem('caixas_google_user');
-            if (savedUser) {
-                try {
-                    appState.googleUser = JSON.parse(savedUser);
-                    updateGoogleUI();
-                } catch(e) {}
+            const savedAlloc = localStorage.getItem('caixas_allocations');
+            if (savedAlloc) {
+                try { appState.allocations = JSON.parse(savedAlloc); } catch(e) { appState.allocations = {}; }
+            }
+
+            const savedWith = localStorage.getItem('caixas_withdrawals');
+            if (savedWith) {
+                try { appState.withdrawals = JSON.parse(savedWith); } catch(e) { appState.withdrawals = []; }
             }
         }
 
-        // Envio de Dados para Google Sheets (via Webhook Google Apps Script)
-        async function syncToGoogleSheet() {
+        function syncToGoogleSheet() {
             if (!appState.googleScriptUrl) return;
             try {
-                await fetch(appState.googleScriptUrl, {
+                fetch(appState.googleScriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        timestamp: new Date().toISOString(),
-                        user: appState.googleUser ? appState.googleUser.email : 'anonimo',
+                        updatedAt: new Date().toISOString(),
                         boxes: appState.boxes,
                         allocations: appState.allocations,
                         withdrawals: appState.withdrawals
                     })
                 });
             } catch (err) {
-                console.warn('Falha na sincronização silenciosa com Google Sheet:', err);
+                console.log('Google Sheets Sync Status:', err);
             }
         }
 
-        // Agregações e Cálculos
         function getActiveBoxesForDate(dateStr) {
             const parts = dateStr.split('-');
-            const d = new Date(parts[0], parts[1] - 1, parts[2]);
-            const dayOfWeek = d.getDay();
-            return appState.boxes.filter(b => (b.activeDays || [1,2,3,4,5]).includes(dayOfWeek));
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            const dayOfWeek = dateObj.getDay(); 
+            return appState.boxes.filter(b => (b.activeDays || []).includes(dayOfWeek));
         }
 
         function calculateBoxBalances(targetBoxId = null) {
-            const totals = { totalCash: 0, totalBank: 0, totalNet: 0, perBox: {} };
+            const result = { perBox: {}, totalCash: 0, totalBank: 0, totalWithdrawals: 0, globalNet: 0 };
 
-            appState.boxes.forEach(box => {
-                totals.perBox[box.id] = { netCash: 0, netBank: 0, totalNet: 0 };
+            appState.boxes.forEach(b => {
+                result.perBox[b.id] = { cash: 0, bank: 0, wCash: 0, wBank: 0, netCash: 0, netBank: 0, totalNet: 0 };
             });
 
-            Object.keys(appState.allocations).forEach(date => {
-                const dayAlloc = appState.allocations[date];
-                Object.keys(dayAlloc).forEach(bId => {
-                    if (targetBoxId && bId !== targetBoxId) return;
-                    const alloc = dayAlloc[bId];
-                    if (alloc && alloc.allocated) {
-                        const boxObj = appState.boxes.find(b => b.id === bId);
-                        const defaultTarget = boxObj ? boxObj.dailyTarget : 0;
-                        const cash = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : defaultTarget);
-                        const bank = Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
-
-                        if (!totals.perBox[bId]) totals.perBox[bId] = { netCash: 0, netBank: 0, totalNet: 0 };
-                        totals.perBox[bId].netCash += cash;
-                        totals.perBox[bId].netBank += bank;
+            Object.keys(appState.allocations).forEach(dStr => {
+                const dayObj = appState.allocations[dStr] || {};
+                Object.keys(dayObj).forEach(bId => {
+                    const alloc = dayObj[bId];
+                    if (alloc && alloc.allocated && result.perBox[bId]) {
+                        const targetBox = appState.boxes.find(x => x.id === bId);
+                        const defaultTarget = targetBox ? targetBox.dailyTarget : 0;
+                        const cashVal = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : defaultTarget);
+                        const bankVal = Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
+                        result.perBox[bId].cash += cashVal;
+                        result.perBox[bId].bank += bankVal;
                     }
                 });
             });
 
             appState.withdrawals.forEach(w => {
-                if (targetBoxId && w.boxId !== targetBoxId) return;
-                if (!totals.perBox[w.boxId]) totals.perBox[w.boxId] = { netCash: 0, netBank: 0, totalNet: 0 };
-
-                if (w.source === 'bank') {
-                    totals.perBox[w.boxId].netBank -= Number(w.amount);
-                } else {
-                    totals.perBox[w.boxId].netCash -= Number(w.amount);
+                const bId = w.boxId;
+                if (result.perBox[bId]) {
+                    if (w.source === 'bank') {
+                        result.perBox[bId].wBank += Number(w.amount || 0);
+                    } else {
+                        result.perBox[bId].wCash += Number(w.amount || 0);
+                    }
                 }
             });
 
-            Object.keys(totals.perBox).forEach(bId => {
-                const b = totals.perBox[bId];
-                b.totalNet = b.netCash + b.netBank;
-                totals.totalCash += b.netCash;
-                totals.totalBank += b.netBank;
-                totals.totalNet += b.totalNet;
+            Object.keys(result.perBox).forEach(bId => {
+                const item = result.perBox[bId];
+                item.netCash = item.cash - item.wCash;
+                item.netBank = item.bank - item.wBank;
+                item.totalNet = item.netCash + item.netBank;
+
+                result.totalCash += item.netCash;
+                result.totalBank += item.netBank;
+                result.totalWithdrawals += (item.wCash + item.wBank);
             });
 
-            return totals;
+            result.globalNet = result.totalCash + result.totalBank;
+            return result;
         }
 
         function calculateMonthlyTotals(dateStr) {
-            const ym = dateStr.substring(0, 7);
-            const res = { totalCash: 0, totalBank: 0, totalWithdrawals: 0, totalNet: 0, perBox: {} };
+            const yearMonth = dateStr.slice(0, 7); 
+            const result = { perBox: {}, monthCash: 0, monthBank: 0, monthWithdrawals: 0, monthNet: 0 };
 
-            appState.boxes.forEach(box => {
-                res.perBox[box.id] = { netCash: 0, netBank: 0, totalNet: 0, wCash: 0, wBank: 0 };
+            appState.boxes.forEach(b => {
+                result.perBox[b.id] = { cash: 0, bank: 0, wCash: 0, wBank: 0, netCash: 0, netBank: 0, totalNet: 0 };
             });
 
-            Object.keys(appState.allocations).forEach(d => {
-                if (d.startsWith(ym)) {
-                    const dayAlloc = appState.allocations[d];
-                    Object.keys(dayAlloc).forEach(bId => {
-                        const alloc = dayAlloc[bId];
-                        if (alloc && alloc.allocated) {
-                            const boxObj = appState.boxes.find(b => b.id === bId);
-                            const defaultTarget = boxObj ? boxObj.dailyTarget : 0;
-                            const cash = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : defaultTarget);
-                            const bank = Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
-
-                            if (!res.perBox[bId]) res.perBox[bId] = { netCash: 0, netBank: 0, totalNet: 0, wCash: 0, wBank: 0 };
-                            res.perBox[bId].netCash += cash;
-                            res.perBox[bId].netBank += bank;
+            Object.keys(appState.allocations).forEach(dStr => {
+                if (dStr.startsWith(yearMonth)) {
+                    const dayObj = appState.allocations[dStr] || {};
+                    Object.keys(dayObj).forEach(bId => {
+                        const alloc = dayObj[bId];
+                        if (alloc && alloc.allocated && result.perBox[bId]) {
+                            const targetBox = appState.boxes.find(x => x.id === bId);
+                            const defaultTarget = targetBox ? targetBox.dailyTarget : 0;
+                            const cashVal = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : defaultTarget);
+                            const bankVal = Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
+                            result.perBox[bId].cash += cashVal;
+                            result.perBox[bId].bank += bankVal;
                         }
                     });
                 }
             });
 
             appState.withdrawals.forEach(w => {
-                if (w.date && w.date.startsWith(ym)) {
-                    if (!res.perBox[w.boxId]) res.perBox[w.boxId] = { netCash: 0, netBank: 0, totalNet: 0, wCash: 0, wBank: 0 };
-                    if (w.source === 'bank') {
-                        res.perBox[w.boxId].wBank += Number(w.amount);
-                        res.perBox[w.boxId].netBank -= Number(w.amount);
-                    } else {
-                        res.perBox[w.boxId].wCash += Number(w.amount);
-                        res.perBox[w.boxId].netCash -= Number(w.amount);
+                if (w.date && w.date.startsWith(yearMonth)) {
+                    const bId = w.boxId;
+                    if (result.perBox[bId]) {
+                        if (w.source === 'bank') {
+                            result.perBox[bId].wBank += Number(w.amount || 0);
+                        } else {
+                            result.perBox[bId].wCash += Number(w.amount || 0);
+                        }
                     }
-                    res.totalWithdrawals += Number(w.amount);
                 }
             });
 
-            Object.keys(res.perBox).forEach(bId => {
-                const b = res.perBox[bId];
-                b.totalNet = b.netCash + b.netBank;
-                res.totalCash += b.netCash;
-                res.totalBank += b.netBank;
+            Object.keys(result.perBox).forEach(bId => {
+                const item = result.perBox[bId];
+                item.netCash = item.cash - item.wCash;
+                item.netBank = item.bank - item.wBank;
+                item.totalNet = item.netCash + item.netBank;
+
+                result.monthCash += item.netCash;
+                result.monthBank += item.netBank;
+                result.monthWithdrawals += (item.wCash + item.wBank);
             });
 
-            res.totalNet = res.totalCash + res.totalBank;
-            return res;
-        }
-
-        // Funções de Renderização Visual da UI
-        function initDateSelector() {
-            const input = document.getElementById('selectedDate');
-            if (input) input.value = appState.currentDate;
-            updateDateLabel();
-        }
-
-        function updateDateLabel() {
-            const parts = appState.currentDate.split('-');
-            const d = new Date(parts[0], parts[1] - 1, parts[2]);
-            const dayNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-            const dayText = dayNames[d.getDay()];
-
-            const label = document.getElementById('selectedDayName');
-            if (label) label.innerText = dayText;
-
-            const activeBoxes = getActiveBoxesForDate(appState.currentDate);
-            const workBadge = document.getElementById('dayWorkStatus');
-            if (workBadge) {
-                if (activeBoxes.length > 0) {
-                    workBadge.className = "w-full md:w-auto px-4 py-2 rounded-xl text-center text-xs font-semibold flex items-center justify-center gap-2 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800";
-                    workBadge.innerHTML = `<i class="fa-solid fa-briefcase"></i> Dia Útil / Ativo (${activeBoxes.length} caixinhas)`;
-                } else {
-                    workBadge.className = "w-full md:w-auto px-4 py-2 rounded-xl text-center text-xs font-semibold flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600";
-                    workBadge.innerHTML = `<i class="fa-solid fa-mug-hot"></i> Sem Alocações Previstas`;
-                }
-            }
+            result.monthNet = result.monthCash + result.monthBank;
+            return result;
         }
 
         function renderKPIs() {
+            const brandTitle = document.getElementById('brandTitle');
+            const companySubtextEl = document.getElementById('companySubtext');
+            if (brandTitle) brandTitle.innerText = appState.companyName ? `Caixas Diárias - ${appState.companyName}` : 'Caixas Diárias';
+            if (companySubtextEl) companySubtextEl.innerText = appState.companySubtext || 'Método de Alocação para Empresas';
+
+            const logoImg = document.getElementById('companyLogoImg');
+            const defaultIcon = document.getElementById('defaultVaultIcon');
+            if (logoImg && defaultIcon) {
+                if (appState.companyLogo) {
+                    logoImg.src = appState.companyLogo;
+                    logoImg.classList.remove('hidden');
+                    defaultIcon.classList.add('hidden');
+                } else {
+                    logoImg.classList.add('hidden');
+                    defaultIcon.classList.remove('hidden');
+                }
+            }
+
             const activeBoxes = getActiveBoxesForDate(appState.currentDate);
             const dateAllocations = appState.allocations[appState.currentDate] || {};
 
-            let targetTotal = 0;
+            let dailyTargetTotal = 0;
             let allocatedCash = 0;
             let allocatedBank = 0;
             let pendingCount = 0;
 
-            activeBoxes.forEach(b => {
-                targetTotal += b.dailyTarget;
-                const alloc = dateAllocations[b.id];
+            activeBoxes.forEach(box => {
+                dailyTargetTotal += box.dailyTarget;
+                const alloc = dateAllocations[box.id];
                 if (alloc && alloc.allocated) {
-                    allocatedCash += Number(alloc.cashAmount !== undefined ? alloc.cashAmount : b.dailyTarget);
-                    allocatedBank += Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
+                    const cash = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : box.dailyTarget);
+                    const bank = Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
+                    allocatedCash += cash;
+                    allocatedBank += bank;
                 } else {
                     pendingCount++;
                 }
             });
 
-            const totalAllocated = allocatedCash + allocatedBank;
-            const pendingTotal = Math.max(0, targetTotal - totalAllocated);
-            const pct = targetTotal > 0 ? Math.min(100, Math.round((totalAllocated / targetTotal) * 100)) : 0;
+            const totalAllocatedToday = allocatedCash + allocatedBank;
+            const dailyPendingVal = Math.max(0, dailyTargetTotal - totalAllocatedToday);
+            const percent = dailyTargetTotal > 0 ? Math.min(100, Math.round((totalAllocatedToday / dailyTargetTotal) * 100)) : 0;
 
-            document.getElementById('kpiDailyTarget').innerText = formatCurrency(targetTotal);
+            document.getElementById('kpiDailyTarget').innerText = formatCurrency(dailyTargetTotal);
             document.getElementById('kpiAllocatedCash').innerText = formatCurrency(allocatedCash);
             document.getElementById('kpiAllocatedBank').innerText = formatCurrency(allocatedBank);
-            document.getElementById('kpiDailyAllocated').innerText = formatCurrency(totalAllocated);
-            document.getElementById('kpiDailyPending').innerText = formatCurrency(pendingTotal);
-            document.getElementById('kpiAllocatedSubtext').innerText = `${pct}% da meta atingida`;
-            document.getElementById('kpiPendingCount').innerText = `${pendingCount} caixinha(s) pendente(s)`;
+            document.getElementById('kpiDailyAllocated').innerText = formatCurrency(totalAllocatedToday);
+            document.getElementById('kpiDailyPending').innerText = formatCurrency(dailyPendingVal);
+
+            const kpiAllocatedSubtext = document.getElementById('kpiAllocatedSubtext');
+            if (kpiAllocatedSubtext) kpiAllocatedSubtext.innerText = `${percent}% da meta prevista atempo`;
+
+            const kpiPendingCount = document.getElementById('kpiPendingCount');
+            if (kpiPendingCount) kpiPendingCount.innerText = `${pendingCount} caixinha(s) pendente(s)`;
 
             const barFill = document.getElementById('progressBarFill');
             const barText = document.getElementById('progressBarText');
-            if (barFill) barFill.style.width = `${pct}%`;
-            if (barText) barText.innerText = `${pct}%`;
+            if (barFill) barFill.style.width = `${percent}%`;
+            if (barText) barText.innerText = `${percent}% concluído`;
 
             const mData = calculateMonthlyTotals(appState.currentDate);
-            document.getElementById('kpiMonthlyTotal').innerText = formatCurrency(mData.totalNet);
-            document.getElementById('kpiMonthlyCash').innerText = formatCurrency(mData.totalCash);
-            document.getElementById('kpiMonthlyBank').innerText = formatCurrency(mData.totalBank);
-            document.getElementById('kpiMonthlyWithdrawals').innerText = formatCurrency(mData.totalWithdrawals);
+            document.getElementById('kpiMonthlyTotal').innerText = formatCurrency(mData.monthNet);
+            document.getElementById('kpiMonthlyCash').innerText = formatCurrency(mData.monthCash);
+            document.getElementById('kpiMonthlyBank').innerText = formatCurrency(mData.monthBank);
+            document.getElementById('kpiMonthlyWithdrawals').innerText = formatCurrency(mData.monthWithdrawals);
 
-            const hData = calculateBoxBalances();
-            let totalHistWithdrawals = 0;
-            appState.withdrawals.forEach(w => totalHistWithdrawals += Number(w.amount));
+            const gData = calculateBoxBalances();
+            document.getElementById('kpiAllTimeTotal').innerText = formatCurrency(gData.globalNet);
+            document.getElementById('kpiAllTimeCash').innerText = formatCurrency(gData.totalCash);
+            document.getElementById('kpiAllTimeBank').innerText = formatCurrency(gData.totalBank);
+            document.getElementById('kpiAllTimeWithdrawals').innerText = formatCurrency(gData.totalWithdrawals);
 
-            document.getElementById('kpiAllTimeTotal').innerText = formatCurrency(hData.totalNet);
-            document.getElementById('kpiAllTimeCash').innerText = formatCurrency(hData.totalCash);
-            document.getElementById('kpiAllTimeBank').innerText = formatCurrency(hData.totalBank);
-            document.getElementById('kpiAllTimeWithdrawals').innerText = formatCurrency(totalHistWithdrawals);
+            const statusEl = document.getElementById('dayWorkStatus');
+            if (statusEl) {
+                if (activeBoxes.length === 0) {
+                    statusEl.className = "w-full md:w-auto px-4 py-2 rounded-xl text-center text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300";
+                    statusEl.innerHTML = `<i class="fa-solid fa-mug-hot text-amber-500"></i> Sem alocações agendadas para este dia da semana`;
+                } else if (pendingCount === 0) {
+                    statusEl.className = "w-full md:w-auto px-4 py-2 rounded-xl text-center text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800";
+                    statusEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Todas as metas ativas do dia foram alocadas!`;
+                } else {
+                    statusEl.className = "w-full md:w-auto px-4 py-2 rounded-xl text-center text-xs font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800";
+                    statusEl.innerHTML = `<i class="fa-solid fa-clock text-amber-500"></i> Restam ${pendingCount} caixinha(s) a alocar hoje`;
+                }
+            }
         }
 
-        function renderApp() {
-            updateDateLabel();
-            renderKPIs();
-            renderCategoryFilterBar();
-            renderDailyAllocations();
+        function initDateSelector() {
+            const input = document.getElementById('selectedDate');
+            if (input) input.value = appState.currentDate;
+            updateDayNameLabel();
         }
 
-        // Funções globais vinculadas ao window
-        window.appState = appState;
-        window.renderApp = renderApp;
+        function updateDayNameLabel() {
+            const dayLabel = document.getElementById('selectedDayName');
+            if (!dayLabel) return;
+            const parts = appState.currentDate.split('-');
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            dayLabel.innerText = d.toLocaleDateString('pt-BR', options);
+        }
+
+        window.toggleDarkMode = function() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        };
 
         window.changeDate = function(offset) {
             const parts = appState.currentDate.split('-');
@@ -919,7 +1015,7 @@
             const val = document.getElementById('selectedDate').value;
             if (val) {
                 appState.currentDate = val;
-                updateDateLabel();
+                updateDayNameLabel();
                 renderApp();
             }
         };
@@ -932,26 +1028,16 @@
 
         window.filterDailyCards = function(filter) {
             appState.activeFilter = filter;
-            
-            const btnAll = document.getElementById('filterAll');
-            const btnCompleted = document.getElementById('filterCompleted');
-            const btnPending = document.getElementById('filterPending');
-
-            const inactiveClass = "px-2.5 py-1 text-xs rounded-lg font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1";
-            const activeClass = "px-2.5 py-1 text-xs rounded-lg font-bold bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 flex items-center gap-1 shadow-sm";
-
-            if (btnAll) btnAll.className = filter === 'all' ? activeClass : inactiveClass;
-            if (btnCompleted) btnCompleted.className = filter === 'completed' ? activeClass : inactiveClass;
-            if (btnPending) btnPending.className = filter === 'pending' ? activeClass : inactiveClass;
-
+            document.getElementById('filterAll').className = "px-2.5 py-1 text-xs rounded-lg font-medium " + (filter === 'all' ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-bold' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700');
+            document.getElementById('filterCompleted').className = "px-2.5 py-1 text-xs rounded-lg font-medium " + (filter === 'completed' ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-bold' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700');
+            document.getElementById('filterPending').className = "px-2.5 py-1 text-xs rounded-lg font-medium " + (filter === 'pending' ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-bold' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700');
             renderDailyAllocations();
         };
 
-        window.filterByCategory = function(catName) {
-            appState.selectedCategoryFilter = catName;
+        window.filterByCategory = function(cat) {
+            appState.selectedCategoryFilter = cat;
             renderCategoryFilterBar();
             renderDailyAllocations();
-            renderBoxesList();
         };
 
         window.markAllToday = function(shouldAllocate) {
@@ -961,17 +1047,17 @@
             }
 
             activeBoxes.forEach(box => {
-                const existing = appState.allocations[appState.currentDate][box.id] || {};
+                const currentVal = appState.allocations[appState.currentDate][box.id] || { allocated: false, cashAmount: box.dailyTarget, bankAmount: 0 };
                 appState.allocations[appState.currentDate][box.id] = {
                     allocated: shouldAllocate,
-                    cashAmount: existing.cashAmount !== undefined ? existing.cashAmount : box.dailyTarget,
-                    bankAmount: existing.bankAmount !== undefined ? existing.bankAmount : 0
+                    cashAmount: currentVal.cashAmount !== undefined ? currentVal.cashAmount : box.dailyTarget,
+                    bankAmount: currentVal.bankAmount !== undefined ? currentVal.bankAmount : 0
                 };
             });
 
             saveAllocationsToStorage();
             renderApp();
-            showToast(shouldAllocate ? 'Todas as caixinhas marcadas!' : 'Alocações do dia limpas.');
+            showToast(shouldAllocate ? 'Todas as caixinhas ativas foram marcadas como alocadas!' : 'Valores do dia desmarcados.');
         };
 
         window.toggleAllocation = function(boxId) {
@@ -1000,31 +1086,23 @@
             const box = appState.boxes.find(b => b.id === boxId);
             const current = appState.allocations[appState.currentDate][boxId] || { allocated: true, cashAmount: box ? box.dailyTarget : 0, bankAmount: 0 };
 
-            let cashNum = cashVal !== null ? parseFloat(cashVal) || 0 : current.cashAmount;
-            let bankNum = bankVal !== null ? parseFloat(bankVal) || 0 : current.bankAmount;
+            const newCash = cashVal !== null ? parseFloat(cashVal) || 0 : current.cashAmount;
+            const newBank = bankVal !== null ? parseFloat(bankVal) || 0 : current.bankAmount;
 
             appState.allocations[appState.currentDate][boxId] = {
-                allocated: true,
-                cashAmount: cashNum,
-                bankAmount: bankNum
+                allocated: (newCash + newBank) > 0 ? true : current.allocated,
+                cashAmount: newCash,
+                bankAmount: newBank
             };
 
             saveAllocationsToStorage();
             renderApp();
         };
 
-        window.toggleDarkMode = function() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        };
-
         window.openBoxModal = function(boxId = null) {
             const modal = document.getElementById('boxModal');
             const form = document.getElementById('boxForm');
             form.reset();
-
-            document.getElementById('boxCategorySelect').value = 'Custos Fixos da Empresa';
-            document.getElementById('boxCategoryCustom').classList.add('hidden');
 
             if (boxId) {
                 const box = appState.boxes.find(b => b.id === boxId);
@@ -1036,35 +1114,27 @@
                     document.getElementById('boxColor').value = box.color || '#10b981';
                     document.getElementById('boxIcon').value = box.icon || 'fa-house';
 
-                    const select = document.getElementById('boxCategorySelect');
-                    const catVal = box.category || 'Custos Fixos da Empresa';
-                    let foundOption = false;
-
-                    for (let opt of select.options) {
-                        if (opt.value === catVal) {
-                            select.value = catVal;
-                            foundOption = true;
-                            break;
-                        }
-                    }
-
-                    if (!foundOption) {
-                        select.value = 'custom';
-                        document.getElementById('boxCategoryCustom').value = catVal;
+                    const catSelect = document.getElementById('boxCategorySelect');
+                    const options = Array.from(catSelect.options).map(o => o.value);
+                    if (options.includes(box.category)) {
+                        catSelect.value = box.category;
+                        document.getElementById('boxCategoryCustom').classList.add('hidden');
+                    } else {
+                        catSelect.value = 'custom';
+                        document.getElementById('boxCategoryCustom').value = box.category || '';
                         document.getElementById('boxCategoryCustom').classList.remove('hidden');
                     }
 
                     for (let i = 0; i < 7; i++) {
-                        const check = document.getElementById(`day-${i}`);
-                        if (check) check.checked = box.activeDays.includes(i);
+                        document.getElementById(`day-${i}`).checked = (box.activeDays || []).includes(i);
                     }
                 }
             } else {
                 document.getElementById('boxModalTitle').innerText = 'Nova Caixinha';
                 document.getElementById('boxId').value = '';
-                for (let i = 0; i < 7; i++) {
-                    const check = document.getElementById(`day-${i}`);
-                    if (check) check.checked = (i >= 1 && i <= 5);
+                document.getElementById('boxCategoryCustom').classList.add('hidden');
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`day-${i}`).checked = true;
                 }
             }
 
@@ -1122,6 +1192,56 @@
             window.closeBoxModal();
             renderApp();
             showToast('Caixinha salva com sucesso!');
+        };
+
+        window.openCompanyModal = function() {
+            document.getElementById('companyNameInput').value = appState.companyName || '';
+            document.getElementById('companySubtextInput').value = appState.companySubtext || 'Método de Alocação para Empresas';
+            document.getElementById('companyLogoUrlInput').value = appState.companyLogo || '';
+            document.getElementById('companyModal').classList.remove('hidden');
+        };
+
+        window.closeCompanyModal = function() {
+            document.getElementById('companyModal').classList.add('hidden');
+        };
+
+        window.handleLogoFileUpload = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Data = e.target.result;
+                    document.getElementById('companyLogoUrlInput').value = base64Data;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.removeCompanyLogo = function() {
+            appState.companyLogo = '';
+            localStorage.removeItem('caixas_company_logo');
+            document.getElementById('companyLogoUrlInput').value = '';
+            renderApp();
+            showToast('Logo da empresa removida.');
+        };
+
+        window.saveCompanySettings = function(e) {
+            e.preventDefault();
+            const nameVal = document.getElementById('companyNameInput').value.trim();
+            const subtextVal = document.getElementById('companySubtextInput').value.trim() || 'Método de Alocação para Empresas';
+            const logoVal = document.getElementById('companyLogoUrlInput').value.trim();
+
+            appState.companyName = nameVal;
+            appState.companySubtext = subtextVal;
+            appState.companyLogo = logoVal;
+
+            localStorage.setItem('caixas_company_name', nameVal);
+            localStorage.setItem('caixas_company_subtext', subtextVal);
+            localStorage.setItem('caixas_company_logo', logoVal);
+
+            window.closeCompanyModal();
+            renderApp();
+            showToast('Dados e logo da empresa salvos com sucesso!');
         };
 
         window.editBox = function(id) {
@@ -1214,7 +1334,7 @@
                 return;
             }
 
-            appState.withdrawals.unshift({
+            appState.withdrawals.push({
                 id: 'w-' + Date.now(),
                 boxId,
                 amount,
@@ -1229,16 +1349,15 @@
             showToast('Retirada registrada com sucesso!');
         };
 
-        window.deleteWithdrawal = function(wId) {
-            if (confirm('Tem certeza que deseja cancelar esta retirada?')) {
-                appState.withdrawals = appState.withdrawals.filter(w => w.id !== wId);
+        window.deleteWithdrawal = function(id) {
+            if (confirm('Tem certeza que deseja excluir esta retirada?')) {
+                appState.withdrawals = appState.withdrawals.filter(w => w.id !== id);
                 saveWithdrawalsToStorage();
                 renderApp();
-                showToast('Retirada cancelada!', 'info');
+                showToast('Retirada excluída!');
             }
         };
 
-        // Funções do Modal Google Sheets
         window.openGoogleModal = function() {
             document.getElementById('googleSheetScriptUrl').value = appState.googleScriptUrl;
             updateGoogleUI();
@@ -1859,6 +1978,16 @@
             });
         }
 
+        function renderApp() {
+            renderKPIs();
+            renderCategoryFilterBar();
+            renderDailyAllocations();
+            renderBoxesList();
+            renderMonthlySummary();
+            renderWithdrawalsTable();
+            updateGoogleUI();
+        }
+
         function formatCurrency(val) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
         }
@@ -1894,7 +2023,7 @@
             }, 3000);
         }
 
-        // Inicializar aplicação
+        // Evento de Inicialização
         window.onload = function() {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
