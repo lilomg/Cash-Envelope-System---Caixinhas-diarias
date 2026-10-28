@@ -203,8 +203,8 @@
                             <i class="fa-solid fa-piggy-bank text-lg"></i>
                         </div>
                         <div>
-                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Acumulado Histórico Total</span>
-                            <p class="text-xs text-slate-400">Saldo atual de todas as caixinhas desde a criação</p>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Acumulado Histórico Global</span>
+                            <p class="text-xs text-slate-400">Saldo acumulado de todos os meses desde a criação</p>
                         </div>
                     </div>
                     <div id="kpiAllTimeTotal" class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">R$ 0,00</div>
@@ -573,57 +573,358 @@
 
     <!-- SCRIPT DE LÓGICA E REGRAS DE NEGÓCIO DA APLICAÇÃO -->
     <script>
-        // --- DADOS INICIAIS DE EXEMPLO ---
-        // Array de objetos contendo as caixinhas padrão fornecidas ao iniciar o sistema pela primeira vez
+        // --- CONFIGURAÇÕES E DADOS PADRÃO DE INICIALIZAÇÃO ---
         const DEFAULT_BOXES = [
-            // Caixinha 1: Aluguel do imóvel com meta de R$ 80,00 de segunda a sexta (dias 1 a 5)
-            { id: 'box-1', name: 'Aluguel do Imóvel', dailyTarget: 80.00, activeDays: [1,2,3,4,5], color: '#3b82f6', icon: 'fa-house' },
-            // Caixinha 2: Despesa de energia e água
-            { id: 'box-2', name: 'Energia / Água', dailyTarget: 25.00, activeDays: [1,2,3,4,5], color: '#f59e0b', icon: 'fa-bolt' },
-            // Caixinha 3: Pro-labore dos sócios
-            { id: 'box-3', name: 'Pro-labore Sócios', dailyTarget: 150.00, activeDays: [1,2,3,4,5], color: '#10b981', icon: 'fa-user-tie' },
-            // Caixinha 4: Pagamento de fornecedores
-            { id: 'box-4', name: 'Fornecedores Principais', dailyTarget: 200.00, activeDays: [1,2,3,4,5], color: '#8b5cf6', icon: 'fa-truck-field' },
-            // Caixinha 5: Pagamento de impostos mensais (Simples / DAS)
-            { id: 'box-5', name: 'Impostos (DAS / Simples)', dailyTarget: 45.00, activeDays: [1,2,3,4,5], color: '#ef4444', icon: 'fa-file-invoice-dollar' },
-            // Caixinha 6: Reserva financeira de emergência da empresa
-            { id: 'box-6', name: 'Reserva de Emergência', dailyTarget: 30.00, activeDays: [1,2,3,4,5], color: '#06b6d4', icon: 'fa-piggy-bank' }
+            { id: 'box-1', name: 'Aluguel do Imóvel', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#3b82f6', icon: 'fa-house' },
+            { id: 'box-2', name: 'Energia & Água', dailyTarget: 25, activeDays: [1, 2, 3, 4, 5], color: '#eab308', icon: 'fa-bolt' },
+            { id: 'box-3', name: 'Folha / Pro-labore', dailyTarget: 150, activeDays: [1, 2, 3, 4, 5], color: '#10b981', icon: 'fa-user-tie' },
+            { id: 'box-4', name: 'Fornecedores Principais', dailyTarget: 200, activeDays: [1, 2, 3, 4, 5], color: '#8b5cf6', icon: 'fa-truck-field' },
+            { id: 'box-5', name: 'Impostos & DAS', dailyTarget: 40, activeDays: [1, 2, 3, 4, 5], color: '#ef4444', icon: 'fa-file-invoice-dollar' },
+            { id: 'box-6', name: 'Reserva de Emergência', dailyTarget: 50, activeDays: [1, 2, 3, 4, 5], color: '#ec4899', icon: 'fa-piggy-bank' }
         ];
 
-        // --- ESTADO GLOBAL DA APLICAÇÃO ---
-        // Objeto reativo central que armazena todas as informações dinâmicas que o app precisa para funcionar
-        let appState = {
-            boxes: [], // Lista onde ficam armazenadas as caixinhas cadastradas
-            allocations: {}, // Mapeamento de alocações por data no formato: { "AAAA-MM-DD": { "boxId": { allocated: true, cashAmount: 40.00, bankAmount: 40.00 } } }
-            withdrawals: [], // Lista de retiradas no formato: [ { id: 'w-1', boxId: 'box-1', amount: 200, source: 'cash'|'bank', date: 'AAAA-MM-DD', note: '...' } ]
-            currentDate: getTodayString(), // Data selecionada no navegador (padrão é o dia de hoje)
-            activeFilter: 'all', // Filtro da aba diária: 'all' (todos), 'pending' (pendentes), 'completed' (alocados)
-            chartInstance: null // Guarda a referência do objeto do gráfico Chart.js para permitir destruição e recriação dinâmica
+        // Função utilitária para obter a data de hoje formatada em 'AAAA-MM-DD'
+        function getTodayString() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Estudo do Estado Global da Aplicação
+        const appState = {
+            currentDate: getTodayString(), // Armazena a data selecionada no painel (padrão: hoje)
+            activeFilter: 'all',          // Filtro selecionado na visão diária ('all', 'pending', 'completed')
+            boxes: [],                    // Lista de caixinhas cadastradas
+            allocations: {},              // Mapa de alocações organizadas por data: { 'AAAA-MM-DD': { boxId: { allocated, cashAmount, bankAmount } } }
+            withdrawals: [],              // Histórico de retiradas: [ { id, boxId, amount, source, date, note } ]
+            chartInstance: null           // Referência para destruição e reinstância do Chart.js
         };
 
-        // --- INICIALIZAÇÃO DO SISTEMA ---
-        // Escuta o evento de carregamento completo do documento HTML no navegador
-        window.addEventListener('DOMContentLoaded', () => {
-            loadLocalStorage(); // Carrega os dados salvos anteriormente na memória do navegador (localStorage)
-            initDateSelector(); // Inicializa o seletor de data com o dia de hoje
-            renderApp(); // Executa a renderização geral das telas e componentes
-            
-            // Verifica se o usuário tem preferência salva de tema (Escuro/Claro) no navegador
-            if (!localStorage.getItem('theme')) {
-                // Se não houver registro no localStorage, checa a preferência do sistema operacional
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.documentElement.classList.add('dark'); // Adiciona classe 'dark' no elemento <html> para ativar modo escuro
-                }
-            } else if (localStorage.getItem('theme') === 'dark') {
-                // Se o usuário salvou o modo escuro anteriormente, aplica a classe 'dark'
+        // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+        window.onload = function() {
+            // Verifica preferência prévia de tema escuro salva no localStorage
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
             }
-        });
 
-        // Retorna a data atual do sistema formatada no padrão internacional 'AAAA-MM-DD'
-        function getTodayString() {
-            const today = new Date(); // Cria objeto com a data/hora atual
-            return formatDateToISO(today); // Converte para ISO 'AAAA-MM-DD'
+            loadLocalStorage();  // Carrega caixinhas, alocações e retiradas salvas
+            initDateSelector();  // Sincroniza o Seletor de Data com a data de hoje
+            renderApp();         // Desenha a interface inicial
+        };
+
+        // --- DADOS INICIAIS DE EXEMPLO ---
+        // --- RENDERING ABA 1: LISTA DIÁRIA DE ALOCAÇÕES ---
+        // Desenha os cartões interativos de cada caixinha para fazer as alocações no dia selecionado
+        function renderDailyAllocations() {
+            const container = document.getElementById('dailyCardsContainer'); // Pega contêiner principal da grade
+            container.innerHTML = ''; // Limpa conteúdo atual
+
+            const activeBoxes = getActiveBoxesForDate(appState.currentDate); // Busca caixinhas ativas no dia
+            const dateAllocations = appState.allocations[appState.currentDate] || {}; // Pega registros de hoje
+            const monthlyData = calculateMonthlyTotals(appState.currentDate); // Pega cálculos do mês selecionado
+            const historicalData = calculateBoxBalances(); // Pega cálculos históricos gerais
+
+            // Se nenhuma caixinha estiver configurada para funcionar no dia selecionado
+            if (activeBoxes.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700">
+                        <i class="fa-solid fa-calendar-xmark text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
+                        <h4 class="font-bold text-slate-700 dark:text-slate-300">Sem caixinhas ativas nesta data</h4>
+                        <p class="text-xs text-slate-500 mt-1">Nenhuma caixinha está configurada para este dia da semana.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Aplica os filtros selecionados (Todos, Pendentes ou Concluídos)
+            let filteredBoxes = activeBoxes.filter(box => {
+                const isAllocated = dateAllocations[box.id] && dateAllocations[box.id].allocated;
+                if (appState.activeFilter === 'pending') return !isAllocated;
+                if (appState.activeFilter === 'completed') return isAllocated;
+                return true;
+            });
+
+            if (filteredBoxes.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs text-slate-500">Nenhum item atende ao filtro selecionado.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Constrói o HTML dinâmico para cada cartão de caixinha
+            filteredBoxes.forEach(box => {
+                const alloc = dateAllocations[box.id] || { allocated: false, cashAmount: box.dailyTarget, bankAmount: 0 };
+                const isAllocated = alloc.allocated;
+                const cashVal = alloc.cashAmount !== undefined ? alloc.cashAmount : box.dailyTarget;
+                const bankVal = alloc.bankAmount !== undefined ? alloc.bankAmount : 0;
+                const sumVal = Number(cashVal) + Number(bankVal); // Soma do dia
+
+                // Extrai métricas específicas do mês e histórico global para este card
+                const mBox = monthlyData.perBox[box.id] || { totalNet: 0, wCash: 0, wBank: 0 };
+                const hBox = historicalData.perBox[box.id] || { totalNet: 0 };
+                const mWithdrawals = Number(mBox.wCash || 0) + Number(mBox.wBank || 0);
+
+                // Template do Card da Caixinha com resumos integrados de Dinheiro/Banco, Retiradas e Acumulados
+                const cardHtml = `
+                    <div class="rounded-2xl p-5 border transition-all duration-200 flex flex-col justify-between ${
+                        isAllocated 
+                        ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60' 
+                        : 'bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-700/60 shadow-md ring-1 ring-amber-400/30'
+                    }">
+                        <div>
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shadow-sm" style="background-color: ${box.color}">
+                                        <i class="fa-solid ${box.icon}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 dark:text-white text-sm line-clamp-1">${box.name}</h4>
+                                        <p class="text-[11px] text-slate-400">Meta Diária: <strong class="text-slate-600 dark:text-slate-300">${formatCurrency(box.dailyTarget)}</strong></p>
+                                        <span class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                            isAllocated 
+                                            ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300' 
+                                            : 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300'
+                                        }">
+                                            ${isAllocated ? '<i class="fa-solid fa-check mr-1"></i> Alocado Hoje' : '<i class="fa-solid fa-clock mr-1"></i> Pendente Hoje'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Botão para Marcar/Desmarcar a Alocação -->
+                                <button onclick="toggleAllocation('${box.id}')" class="p-3 rounded-xl transition transform active:scale-95 ${
+                                    isAllocated
+                                    ? 'bg-emerald-600 text-white shadow-md hover:bg-emerald-700'
+                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-200'
+                                }">
+                                    <i class="fa-solid ${isAllocated ? 'fa-square-check' : 'fa-square'} text-xl"></i>
+                                </button>
+                            </div>
+
+                            <!-- Formas de Alocação de Hoje (Dinheiro x Banco) -->
+                            <div class="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-600 dark:text-slate-300 font-medium flex items-center gap-1.5">
+                                        <i class="fa-solid fa-money-bill-wave text-emerald-500"></i> Dinheiro (Espécie):
+                                    </span>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="text-xs font-semibold text-slate-400">R$</span>
+                                        <input type="number" step="0.01" value="${cashVal}" 
+                                            onchange="updateAllocationAmounts('${box.id}', this.value, null)"
+                                            class="w-24 px-2 py-1 text-right text-xs font-bold bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-600 dark:text-slate-300 font-medium flex items-center gap-1.5">
+                                        <i class="fa-solid fa-building-columns text-cyan-500"></i> Depósito / Banco:
+                                    </span>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="text-xs font-semibold text-slate-400">R$</span>
+                                        <input type="number" step="0.01" value="${bankVal}" 
+                                            onchange="updateAllocationAmounts('${box.id}', null, this.value)"
+                                            class="w-24 px-2 py-1 text-right text-xs font-bold bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-700/50">
+                                    <span class="font-semibold text-slate-500 dark:text-slate-400 text-[11px]">Total Hoje (Dinheiro + Banco):</span>
+                                    <span class="font-bold text-sm text-slate-800 dark:text-slate-100">${formatCurrency(sumVal)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Painel Informativo de Retiradas e Saldos Acumulados do Mês e Global -->
+                        <div class="mt-4 p-3 rounded-xl bg-slate-100/80 dark:bg-slate-700/50 border border-slate-200/50 dark:border-slate-600/50 space-y-1.5 text-xs">
+                            <div class="flex justify-between items-center text-rose-600 dark:text-rose-400 font-semibold">
+                                <span><i class="fa-solid fa-hand-holding-dollar mr-1"></i> Retiradas no Mês:</span>
+                                <span>-${formatCurrency(mWithdrawals)}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                                <span><i class="fa-solid fa-calendar-day mr-1 text-emerald-500"></i> Acumulado no Mês:</span>
+                                <strong class="${mBox.totalNet >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}">${formatCurrency(mBox.totalNet)}</strong>
+                            </div>
+                            <div class="flex justify-between items-center pt-1 border-t border-slate-200 dark:border-slate-600 font-bold text-slate-800 dark:text-white">
+                                <span><i class="fa-solid fa-globe mr-1 text-indigo-500"></i> Acumulado Global (Todos Meses):</span>
+                                <span class="${hBox.totalNet >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600'}">${formatCurrency(hBox.totalNet)}</span>
+                            </div>
+                            <div class="pt-2 flex justify-end">
+                                <button onclick="openWithdrawalModal('${box.id}')" class="w-full py-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg text-xs transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-hand-holding-dollar"></i> Fazer Retirada nesta Caixinha
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // --- RENDERING ABA 2: GERENCIAMENTO DE CAIXINHAS E SALDOS HISTÓRICOS ---
+        // Desenha a grade de caixinhas cadastradas exibindo os valores divididos em dinheiro, depósito, retiradas e saldos consolidados
+        function renderBoxesList() {
+            const container = document.getElementById('boxesListContainer');
+            const badge = document.getElementById('boxCountBadge');
+            badge.innerText = appState.boxes.length;
+            container.innerHTML = '';
+
+            if (appState.boxes.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs text-slate-500">Nenhuma caixinha cadastrada. Clique em "Nova Caixinha" para começar.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const allBalances = calculateBoxBalances();
+            const monthlyData = calculateMonthlyTotals(appState.currentDate);
+
+            appState.boxes.forEach(box => {
+                const activeDaysTags = (box.activeDays || []).map(d => `<span class="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300">${dayNames[d]}</span>`).join(' ');
+
+                const bData = allBalances.perBox[box.id] || { netCash: 0, netBank: 0, totalNet: 0, wCash: 0, wBank: 0 };
+                const mBox = monthlyData.perBox[box.id] || { totalNet: 0, wCash: 0, wBank: 0 };
+                const mWithdrawals = Number(mBox.wCash || 0) + Number(mBox.wBank || 0);
+
+                const cardHtml = `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style="background-color: ${box.color}">
+                                        <i class="fa-solid ${box.icon}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 dark:text-white text-sm">${box.name}</h4>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Meta: <strong class="text-slate-800 dark:text-slate-200">${formatCurrency(box.dailyTarget)}</strong> /dia</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quadro de Saldos por Forma de Recurso e Período -->
+                            <div class="mt-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-200/60 dark:border-slate-700/60 space-y-2">
+                                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Posição Financeira da Caixinha:</span>
+                                
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <div class="bg-white dark:bg-slate-700 p-2 rounded-lg border border-slate-100 dark:border-slate-600">
+                                        <span class="text-[10px] text-slate-400 block"><i class="fa-solid fa-money-bill-wave text-emerald-500 mr-1"></i> Em Dinheiro</span>
+                                        <span class="font-bold text-emerald-600 dark:text-emerald-400">${formatCurrency(bData.netCash)}</span>
+                                    </div>
+                                    <div class="bg-white dark:bg-slate-700 p-2 rounded-lg border border-slate-100 dark:border-slate-600">
+                                        <span class="text-[10px] text-slate-400 block"><i class="fa-solid fa-building-columns text-cyan-500 mr-1"></i> Em Depósito</span>
+                                        <span class="font-bold text-cyan-600 dark:text-cyan-400">${formatCurrency(bData.netBank)}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-200/50 dark:border-slate-600/50 text-rose-600 dark:text-rose-400">
+                                    <span><i class="fa-solid fa-hand-holding-dollar mr-1"></i> Retiradas do Mês:</span>
+                                    <span class="font-bold">-${formatCurrency(mWithdrawals)}</span>
+                                </div>
+
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-600 dark:text-slate-300 font-semibold"><i class="fa-solid fa-calendar-day mr-1 text-emerald-500"></i> Acumulado do Mês:</span>
+                                    <span class="font-bold ${mBox.totalNet >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}">${formatCurrency(mBox.totalNet)}</span>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-1 border-t border-slate-200/50 dark:border-slate-600/50 text-xs font-extrabold">
+                                    <span class="text-slate-700 dark:text-slate-200"><i class="fa-solid fa-globe mr-1 text-indigo-500"></i> Acumulado Global Total:</span>
+                                    <span class="${bData.totalNet >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600'}">${formatCurrency(bData.totalNet)}</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <span class="text-[11px] text-slate-400 block mb-1">Dias de alocação:</span>
+                                <div class="flex flex-wrap gap-1">
+                                    ${activeDaysTags}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação para cada Caixinha -->
+                        <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                            <button onclick="openWithdrawalModal('${box.id}')" class="px-2.5 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 rounded-lg transition flex items-center gap-1">
+                                <i class="fa-solid fa-hand-holding-dollar"></i> Retirar
+                            </button>
+                            <div class="flex space-x-1">
+                                <button onclick="editBox('${box.id}')" class="px-2.5 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">
+                                    <i class="fa-solid fa-pen mr-1"></i> Editar
+                                </button>
+                                <button onclick="deleteBox('${box.id}')" class="px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition">
+                                    <i class="fa-solid fa-trash mr-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // --- RENDERING ABA 3: RESUMO MENSAL & GRÁFICO ---
+        function renderMonthlySummary() {
+            const yearMonth = appState.currentDate.substring(0, 7);
+            
+            const parts = appState.currentDate.split('-');
+            const dateObj = new Date(parts[0], parts[1] - 1, 1);
+            const monthLabel = dateObj.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            document.getElementById('monthlyPeriodLabel').innerText = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+            const mTotals = calculateMonthlyTotals(appState.currentDate);
+            const historicalData = calculateBoxBalances();
+
+            const listContainer = document.getElementById('monthlyProgressList');
+            listContainer.innerHTML = '';
+
+            const labels = [];
+            const dataValues = [];
+            const backgroundColors = [];
+
+            appState.boxes.forEach(box => {
+                const bData = mTotals.perBox[box.id] || { netCash: 0, netBank: 0, totalNet: 0, wCash: 0, wBank: 0 };
+                const hBox = historicalData.perBox[box.id] || { totalNet: 0 };
+                const wTotalBox = bData.wCash + bData.wBank;
+
+                labels.push(box.name);
+                dataValues.push(Math.max(0, bData.totalNet));
+                backgroundColors.push(box.color || '#10b981');
+
+                const itemHtml = `
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background-color: ${box.color}">
+                                    <i class="fa-solid ${box.icon}"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-800 dark:text-slate-200 text-xs">${box.name}</h5>
+                                    <p class="text-[10px] text-slate-400">Retiradas no mês: <strong class="text-rose-500">-${formatCurrency(wTotalBox)}</strong></p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-xs block ${bData.totalNet >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}">Mês: ${formatCurrency(bData.totalNet)}</span>
+                                <span class="text-[10px] text-indigo-500 font-semibold block">Global: ${formatCurrency(hBox.totalNet)}</span>
+                            </div>
+                        </div>
+
+                        <!-- Detalhamento de Entradas vs Retiradas em Dinheiro e Banco -->
+                        <div class="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1.5 border-t border-slate-200/50 dark:border-slate-600/50">
+                            <span><i class="fa-solid fa-money-bill-wave text-emerald-500 mr-1"></i> Dinheiro: ${formatCurrency(bData.netCash)}</span>
+                            <span><i class="fa-solid fa-building-columns text-cyan-500 mr-1"></i> Depósito: ${formatCurrency(bData.netBank)}</span>
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', itemHtml);
+            });
+
+            renderChart(labels, dataValues, backgroundColors);
         }
 
         // Função auxiliar que converte um objeto de Data em string formato 'AAAA-MM-DD'
