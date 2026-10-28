@@ -88,7 +88,13 @@
                     <!-- Status Google Sheets / Cloud -->
                     <button onclick="openGoogleModal()" id="googleConnectBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 transition flex items-center gap-1.5">
                         <i id="googleStatusIcon" class="fa-solid fa-cloud text-emerald-600"></i>
-                        <span id="googleStatusText" class="inline">Google Cloud / Sheets</span>
+                        <span id="googleStatusText" class="inline">Google Sync (Nuvem)</span>
+                    </button>
+
+                    <!-- Botão Gerenciar Categorias -->
+                    <button onclick="openCategoryManageModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Categorias</span>
                     </button>
 
                     <!-- Toggle Modo Claro / Escuro -->
@@ -503,19 +509,17 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome da Despesa / Caixinha</label>
-                    <input type="text" id="boxName" required placeholder="Ex: Aluguel, Pro-labore, Fornecedor X" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    <input type="text" id="boxName" required placeholder="Ex: Aluguel, Pro-labore, Parcela Empréstimo X" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tipo de Despesa / Categoria de Agrupamento</label>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Tipo de Despesa / Categoria</label>
+                        <button type="button" onclick="openCategoryManageModal()" class="text-[11px] text-indigo-600 hover:underline">
+                            + Gerenciar Categorias
+                        </button>
+                    </div>
                     <select id="boxCategorySelect" onchange="onCategorySelectChange()" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
-                        <option value="Gastos com Funcionários">👥 Gastos com Funcionários</option>
-                        <option value="Impostos & Taxas">📄 Impostos & Taxas</option>
-                        <option value="Gastos Pessoais / Pro-labore">👤 Gastos Pessoais / Pro-labore</option>
-                        <option value="Custos Fixos da Empresa">🏢 Custos Fixos da Empresa</option>
-                        <option value="Fornecedores & Estoque">🚚 Fornecedores & Estoque</option>
-                        <option value="Reservas & Investimentos">🐷 Reservas & Investimentos</option>
-                        <option value="custom">+ Nova Categoria Personalizada...</option>
                     </select>
                     <input type="text" id="boxCategoryCustom" placeholder="Digite o nome do novo tipo de despesa..." class="w-full mt-2 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white hidden">
                 </div>
@@ -567,6 +571,7 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Ícone</label>
                         <select id="boxIcon" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                            <option value="fa-hand-holding-hand">🤝 Empréstimos & Financiamentos</option>
                             <option value="fa-house">🏠 Aluguel / Prédio</option>
                             <option value="fa-bolt">⚡ Luz / Energia</option>
                             <option value="fa-droplet">💧 Água / Saneamento</option>
@@ -576,6 +581,7 @@
                             <option value="fa-piggy-bank">🐷 Reserva de Emergência</option>
                             <option value="fa-wifi">📶 Internet / Sistemas</option>
                             <option value="fa-bullhorn">📢 Marketing / Anúncios</option>
+                            <option value="fa-credit-card">💳 Cartão / Financiamento</option>
                             <option value="fa-wrench">🔧 Manutenção</option>
                         </select>
                     </div>
@@ -651,63 +657,63 @@
                 </div>
             </form>
         </div>
-    </div>
-
-    <!-- MODAL: BACKUP E DADOS -->
-    <div id="backupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700">
+    <!-- MODAL: GERENCIAR CATEGORIAS DE GASTOS -->
+    <div id="categoryManageModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Gerenciar Dados & Backup</h3>
-                <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-tags text-indigo-600"></i>
+                    Cadastrar Categorias de Gastos
+                </h3>
+                <button onclick="closeCategoryManageModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
             <div class="mt-4 space-y-4">
-                <p class="text-xs text-slate-500 dark:text-slate-400">Seus dados ficam armazenados com segurança e sincronizados.</p>
-                
-                <div class="space-y-2">
-                    <button onclick="exportJSON()" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-lg flex items-center justify-between transition">
-                        <span><i class="fa-solid fa-download mr-2 text-emerald-600"></i> Exportar Arquivo Local (JSON)</span>
-                        <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                <form onsubmit="addCustomCategory(event)" class="flex gap-2">
+                    <input type="text" id="newCategoryNameInput" required placeholder="Nova categoria (ex: Viagens, Licenças)..." class="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white">
+                    <button type="submit" class="px-3 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow shrink-0">
+                        <i class="fa-solid fa-plus mr-1"></i> Adicionar
                     </button>
+                </form>
 
-                    <label class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-lg flex items-center justify-between cursor-pointer transition">
-                        <span><i class="fa-solid fa-upload mr-2 text-blue-600"></i> Importar Arquivo Local (JSON)</span>
-                        <input type="file" id="importFileInput" accept=".json" onchange="importJSON(event)" class="hidden">
-                        <i class="fa-solid fa-chevron-right text-slate-400"></i>
-                    </label>
-
-                    <button onclick="resetToDefaultData()" class="w-full py-2.5 px-4 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg flex items-center justify-between transition">
-                        <span><i class="fa-solid fa-rotate-left mr-2"></i> Restaurar Dados Demonstrativos</span>
-                        <i class="fa-solid fa-chevron-right text-red-400"></i>
-                    </button>
+                <div class="border-t border-slate-100 dark:border-slate-700 pt-3">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Categorias Ativas</h4>
+                    <div id="categoryManageList" class="space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-6 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-                <button onclick="closeBackupModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Fechar</button>
+            <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                <button onclick="closeCategoryManageModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Concluído</button>
             </div>
         </div>
     </div>
 
-    <!-- NOTIFICAÇÃO TOAST CUSTOMIZADA -->
-    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-slate-700 text-xs">
-        <i id="toastIcon" class="fa-solid fa-circle-info text-emerald-400 text-base"></i>
-        <span id="toastMsg">Mensagem do sistema</span>
-    </div>
-
     <!-- SCRIPT PRINCIPAL DE LÓGICA DO APLICATIVO -->
     <script type="module">
+        // Categorias Padrão
+        const DEFAULT_CATEGORIES = [
+            "🤝 Empréstimos & Financiamentos",
+            "👥 Gastos com Funcionários",
+            "📄 Impostos & Taxas",
+            "👤 Gastos Pessoais / Pro-labore",
+            "🏢 Custos Fixos da Empresa",
+            "🚚 Fornecedores & Estoque",
+            "🐷 Reservas & Investimentos"
+        ];
+
         // Caixinhas Padrão Inicial
         const DEFAULT_BOXES = [
-            { id: 'box-1', name: 'Aluguel do Imóvel', category: 'Custos Fixos da Empresa', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#3b82f6', icon: 'fa-house' },
-            { id: 'box-2', name: 'Energia & Água', category: 'Custos Fixos da Empresa', dailyTarget: 25, activeDays: [1, 2, 3, 4, 5], color: '#eab308', icon: 'fa-bolt' },
-            { id: 'box-3', name: 'Folha de Pagamento', category: 'Gastos com Funcionários', dailyTarget: 150, activeDays: [1, 2, 3, 4, 5], color: '#10b981', icon: 'fa-user-tie' },
-            { id: 'box-4', name: 'Pro-labore Sócios', category: 'Gastos Pessoais / Pro-labore', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#06b6d4', icon: 'fa-user' },
-            { id: 'box-5', name: 'Fornecedores Principais', category: 'Fornecedores & Estoque', dailyTarget: 200, activeDays: [1, 2, 3, 4, 5], color: '#8b5cf6', icon: 'fa-truck-field' },
-            { id: 'box-6', name: 'Impostos & DAS', category: 'Impostos & Taxas', dailyTarget: 40, activeDays: [1, 2, 3, 4, 5], color: '#ef4444', icon: 'fa-file-invoice-dollar' },
-            { id: 'box-7', name: 'Reserva de Emergência', category: 'Reservas & Investimentos', dailyTarget: 50, activeDays: [1, 2, 3, 4, 5], color: '#ec4899', icon: 'fa-piggy-bank' }
+            { id: 'box-0', name: 'Empréstimo Bancário / Giro', category: '🤝 Empréstimos & Financiamentos', dailyTarget: 80, activeDays: [1, 2, 3, 4, 5], color: '#f59e0b', icon: 'fa-hand-holding-hand' },
+            { id: 'box-1', name: 'Aluguel do Imóvel', category: '🏢 Custos Fixos da Empresa', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#3b82f6', icon: 'fa-house' },
+            { id: 'box-2', name: 'Energia & Água', category: '🏢 Custos Fixos da Empresa', dailyTarget: 25, activeDays: [1, 2, 3, 4, 5], color: '#eab308', icon: 'fa-bolt' },
+            { id: 'box-3', name: 'Folha de Pagamento', category: '👥 Gastos com Funcionários', dailyTarget: 150, activeDays: [1, 2, 3, 4, 5], color: '#10b981', icon: 'fa-user-tie' },
+            { id: 'box-4', name: 'Pro-labore Sócios', category: '👤 Gastos Pessoais / Pro-labore', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#06b6d4', icon: 'fa-user' },
+            { id: 'box-5', name: 'Fornecedores Principais', category: '🚚 Fornecedores & Estoque', dailyTarget: 200, activeDays: [1, 2, 3, 4, 5], color: '#8b5cf6', icon: 'fa-truck-field' },
+            { id: 'box-6', name: 'Impostos & DAS', category: '📄 Impostos & Taxas', dailyTarget: 40, activeDays: [1, 2, 3, 4, 5], color: '#ef4444', icon: 'fa-file-invoice-dollar' },
+            { id: 'box-7', name: 'Reserva de Emergência', category: '🐷 Reservas & Investimentos', dailyTarget: 50, activeDays: [1, 2, 3, 4, 5], color: '#ec4899', icon: 'fa-piggy-bank' }
         ];
 
         function getTodayString() {
@@ -725,22 +731,88 @@
             companyName: localStorage.getItem('caixas_company_name') || '',
             companySubtext: localStorage.getItem('caixas_company_subtext') || 'Método de Alocação para Empresas',
             companyLogo: localStorage.getItem('caixas_company_logo') || '',
+            categories: JSON.parse(localStorage.getItem('caixas_categories') || 'null') || DEFAULT_CATEGORIES,
             boxes: [],
             allocations: {},
             withdrawals: [],
             chartInstance: null,
-            googleUser: null,
+            googleUser: JSON.parse(localStorage.getItem('caixas_google_user') || 'null'),
             googleScriptUrl: localStorage.getItem('caixas_google_script_url') || ''
         };
 
-        function saveBoxesToStorage() {
-            localStorage.setItem('caixas_boxes', JSON.stringify(appState.boxes));
+        function saveCategoriesToStorage() {
+            localStorage.setItem('caixas_categories', JSON.stringify(appState.categories));
             syncToGoogleSheet();
         }
 
-        function saveAllocationsToStorage() {
-            localStorage.setItem('caixas_allocations', JSON.stringify(appState.allocations));
-            syncToGoogleSheet();
+        window.openCategoryManageModal = function() {
+            renderCategoryManageList();
+            document.getElementById('categoryManageModal').classList.remove('hidden');
+        };
+
+        window.closeCategoryManageModal = function() {
+            document.getElementById('categoryManageModal').classList.add('hidden');
+            populateCategorySelect();
+            renderCategoryFilterBar();
+            renderApp();
+        };
+
+        window.addCustomCategory = function(e) {
+            e.preventDefault();
+            const input = document.getElementById('newCategoryNameInput');
+            const catName = input.value.trim();
+            if (catName && !appState.categories.includes(catName)) {
+                appState.categories.push(catName);
+                saveCategoriesToStorage();
+                input.value = '';
+                renderCategoryManageList();
+                showToast('Nova categoria adicionada!');
+            }
+        };
+
+        window.deleteCategory = function(catName) {
+            if (confirm(`Remover a categoria "${catName}"?`)) {
+                appState.categories = appState.categories.filter(c => c !== catName);
+                saveCategoriesToStorage();
+                renderCategoryManageList();
+                showToast('Categoria removida.');
+            }
+        };
+
+        function renderCategoryManageList() {
+            const container = document.getElementById('categoryManageList');
+            if (!container) return;
+            container.innerHTML = '';
+
+            appState.categories.forEach(cat => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-600/60";
+                item.innerHTML = `
+                    <span>${cat}</span>
+                    <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" title="Excluir" class="text-slate-400 hover:text-rose-600 transition">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function populateCategorySelect() {
+            const select = document.getElementById('boxCategorySelect');
+            if (!select) return;
+            select.innerHTML = '';
+
+            appState.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = cat;
+                select.appendChild(opt);
+            });
+
+            const customOpt = document.createElement('option');
+            customOpt.value = 'custom';
+            customOpt.innerText = '+ Nova Categoria Personalizada...';
+            select.appendChild(customOpt);
         }
 
         function saveWithdrawalsToStorage() {
@@ -1100,6 +1172,7 @@
         };
 
         window.openBoxModal = function(boxId = null) {
+            populateCategorySelect();
             const modal = document.getElementById('boxModal');
             const form = document.getElementById('boxForm');
             form.reset();
@@ -1984,6 +2057,7 @@
         }
 
         function renderApp() {
+            populateCategorySelect();
             renderKPIs();
             renderCategoryFilterBar();
             renderDailyAllocations();
@@ -1992,53 +2066,6 @@
             renderWithdrawalsTable();
             updateGoogleUI();
         }
-
-        function formatCurrency(val) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
-        }
-
-        function formatDateToISO(dateObj) {
-            const yyyy = dateObj.getFullYear();
-            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const dd = String(dateObj.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const msgSpan = document.getElementById('toastMsg');
-            const icon = document.getElementById('toastIcon');
-
-            if (!toast || !msgSpan || !icon) return;
-
-            msgSpan.innerText = message;
-            
-            if (type === 'error') {
-                icon.className = "fa-solid fa-circle-xmark text-red-400 text-base";
-            } else if (type === 'info') {
-                icon.className = "fa-solid fa-circle-info text-blue-400 text-base";
-            } else {
-                icon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
-            }
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-
-        // Evento de Inicialização
-        window.onload = function() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            }
-
-            loadLocalStorage();
-            initDateSelector();
-            renderApp();
-        };
     </script>
 </body>
 </html>
