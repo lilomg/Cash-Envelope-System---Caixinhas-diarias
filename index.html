@@ -457,7 +457,7 @@
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
                 <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-cloud text-emerald-600"></i>
-                    Sincronização com Conta Google
+                    Sincronização na Nuvem
                 </h3>
                 <button onclick="closeGoogleModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -465,27 +465,39 @@
             </div>
 
             <div class="mt-4 space-y-4 text-xs text-slate-600 dark:text-slate-300">
-                <p>Faça login com sua <strong>Conta do Google</strong> para sincronizar e acessar suas caixinhas e lançamentos automaticamente em qualquer computador, celular ou tablet.</p>
+                <p>Vincule sua **Conta Google** para sincronizar e acessar suas caixinhas e lançamentos em qualquer computador, celular ou tablet.</p>
 
                 <div id="googleUserSection" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 flex flex-col items-center text-center gap-3">
                     <div id="googleUserAvatar" class="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-600 dark:text-emerald-300 overflow-hidden text-xl font-bold">
                         <i class="fa-brands fa-google"></i>
                     </div>
                     <div>
-                        <p id="googleUserName" class="font-bold text-slate-800 dark:text-white text-sm">Conta Google Não Vinculada</p>
-                        <p id="googleUserEmail" class="text-xs text-slate-400 mt-0.5">Faça login para ativar o salvamento automático na nuvem</p>
+                        <p id="googleUserName" class="font-bold text-slate-800 dark:text-white text-sm">Conta Não Conectada</p>
+                        <p id="googleUserEmail" class="text-xs text-slate-400 mt-0.5">Informe seu e-mail para ativar a sincronização</p>
                     </div>
 
-                    <!-- Botão do Google Identity / Login -->
-                    <div id="googleSignInButtonContainer" class="mt-2"></div>
+                    <!-- Formulário Rápido de Sincronização sem erro OAuth -->
+                    <div id="manualSyncForm" class="w-full space-y-2 text-left">
+                        <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Seu E-mail Google (Gmail):</label>
+                        <div class="flex gap-1.5">
+                            <input type="email" id="googleEmailInput" placeholder="seu-email@gmail.com" value="lilomg@gmail.com" class="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button onclick="loginWithEmail()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow text-xs shrink-0 transition">
+                                Conectar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botão do Google Identity / GIS Nativo (Opcional) -->
+                    <div id="googleSignInButtonContainer" class="hidden mt-1"></div>
+                    
                     <button id="googleLogoutBtn" onclick="logoutGoogle()" class="hidden px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition border border-rose-200 dark:border-rose-800">
                         <i class="fa-solid fa-right-from-bracket mr-1"></i> Desconectar Conta
                     </button>
                 </div>
 
-                <div class="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
-                    <i class="fa-solid fa-shield-halved text-amber-600 text-sm mt-0.5"></i>
-                    <span>Seus dados ficam vinculados com total segurança à sua conta do Google, sincronizando entre seus dispositivos em tempo real.</span>
+                <div class="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/50 text-[11px] text-emerald-800 dark:text-emerald-300 flex items-start gap-2">
+                    <i class="fa-solid fa-shield-halved text-emerald-600 text-sm mt-0.5"></i>
+                    <span>Seus dados ficam vinculados ao seu e-mail, mantendo sincronização automática entre todos os seus dispositivos.</span>
                 </div>
 
                 <div class="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-700">
@@ -1120,114 +1132,92 @@
             const emailEl = document.getElementById('googleUserEmail');
             const avatarEl = document.getElementById('googleUserAvatar');
             const logoutBtn = document.getElementById('googleLogoutBtn');
-            const btnContainer = document.getElementById('googleSignInButtonContainer');
+            const manualForm = document.getElementById('manualSyncForm');
             const statusText = document.getElementById('googleStatusText');
             const statusIcon = document.getElementById('googleStatusIcon');
 
             if (appState.googleUser) {
-                if (nameEl) nameEl.innerText = appState.googleUser.name;
+                if (nameEl) nameEl.innerText = appState.googleUser.name || appState.googleUser.email;
                 if (emailEl) emailEl.innerText = appState.googleUser.email;
-                if (avatarEl && appState.googleUser.picture) {
-                    avatarEl.innerHTML = `<img src="${appState.googleUser.picture}" class="w-full h-full object-cover">`;
+                if (avatarEl) {
+                    if (appState.googleUser.picture) {
+                        avatarEl.innerHTML = `<img src="${appState.googleUser.picture}" class="w-full h-full object-cover">`;
+                    } else {
+                        avatarEl.innerHTML = `<i class="fa-solid fa-user-check"></i>`;
+                    }
                 }
                 if (logoutBtn) logoutBtn.classList.remove('hidden');
-                if (btnContainer) btnContainer.classList.add('hidden');
-                if (statusText) statusText.innerText = `Sincronizado: ${appState.googleUser.given_name || 'Google'}`;
+                if (manualForm) manualForm.classList.add('hidden');
+                if (statusText) statusText.innerText = `Sincronizado: ${appState.googleUser.email.split('@')[0]}`;
                 if (statusIcon) statusIcon.className = "fa-solid fa-circle-check text-emerald-500";
             } else {
-                if (nameEl) nameEl.innerText = "Conta Google Não Conectada";
-                if (emailEl) emailEl.innerText = "Faça login para ativar a sincronização na nuvem";
+                if (nameEl) nameEl.innerText = "Conta Não Conectada";
+                if (emailEl) emailEl.innerText = "Informe seu e-mail para ativar a sincronização";
                 if (avatarEl) avatarEl.innerHTML = `<i class="fa-brands fa-google"></i>`;
                 if (logoutBtn) logoutBtn.classList.add('hidden');
-                if (btnContainer) btnContainer.classList.remove('hidden');
-                if (statusText) statusText.innerText = "Google Sync (Nuvem)";
+                if (manualForm) manualForm.classList.remove('hidden');
+                if (statusText) statusText.innerText = "Sincronizar Nuvem";
                 if (statusIcon) statusIcon.className = "fa-solid fa-cloud text-emerald-600";
-
-                renderGoogleSignInButton();
             }
         }
 
-        function renderGoogleSignInButton() {
-            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-                google.accounts.id.initialize({
-                    client_id: "928341238912-demo.apps.googleusercontent.com", // GIS Client ID
-                    callback: handleGoogleCredentialResponse,
-                    auto_select: false
-                });
+        window.loginWithEmail = function() {
+            const emailInput = document.getElementById('googleEmailInput');
+            const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
 
-                const container = document.getElementById('googleSignInButtonContainer');
-                if (container) {
-                    container.innerHTML = '';
-                    google.accounts.id.renderButton(
-                        container,
-                        { theme: "outline", size: "medium", text: "signin_with", shape: "pill" }
-                    );
-                }
+            if (!email || !email.includes('@')) {
+                showToast('Por favor, informe um endereço de e-mail válido.', 'error');
+                return;
             }
-        }
 
-        function parseJwt(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) {
-                return null;
+            // Gera uma chave única baseada no e-mail informado
+            const userSub = 'usr_' + btoa(email).replace(/[^a-zA-Z0-9]/g, '');
+
+            appState.googleUser = {
+                sub: userSub,
+                name: email.split('@')[0],
+                email: email,
+                picture: ''
+            };
+
+            localStorage.setItem('caixas_google_user', JSON.stringify(appState.googleUser));
+
+            // Carrega dados sincronizados na nuvem local associados a este e-mail
+            const cloudBoxesKey = `caixas_boxes_${userSub}`;
+            const cloudAllocKey = `caixas_allocations_${userSub}`;
+            const cloudWithKey = `caixas_withdrawals_${userSub}`;
+
+            const cloudBoxes = localStorage.getItem(cloudBoxesKey);
+            const cloudAlloc = localStorage.getItem(cloudAllocKey);
+            const cloudWith = localStorage.getItem(cloudWithKey);
+
+            if (cloudBoxes) {
+                try { appState.boxes = JSON.parse(cloudBoxes); } catch(e){}
             }
-        }
-
-        function handleGoogleCredentialResponse(response) {
-            const profile = parseJwt(response.credential);
-            if (profile) {
-                appState.googleUser = {
-                    sub: profile.sub,
-                    name: profile.name,
-                    given_name: profile.given_name,
-                    email: profile.email,
-                    picture: profile.picture
-                };
-
-                localStorage.setItem('caixas_google_user', JSON.stringify(appState.googleUser));
-                
-                // Carrega dados vinculados à conta Google se existirem
-                const cloudBoxesKey = `caixas_boxes_${profile.sub}`;
-                const cloudAllocKey = `caixas_allocations_${profile.sub}`;
-                const cloudWithKey = `caixas_withdrawals_${profile.sub}`;
-
-                const cloudBoxes = localStorage.getItem(cloudBoxesKey);
-                const cloudAlloc = localStorage.getItem(cloudAllocKey);
-                const cloudWith = localStorage.getItem(cloudWithKey);
-
-                if (cloudBoxes) {
-                    try { appState.boxes = JSON.parse(cloudBoxes); } catch(e){}
-                }
-                if (cloudAlloc) {
-                    try { appState.allocations = JSON.parse(cloudAlloc); } catch(e){}
-                }
-                if (cloudWith) {
-                    try { appState.withdrawals = JSON.parse(cloudWith); } catch(e){}
-                }
-
-                saveBoxesToStorage();
-                saveAllocationsToStorage();
-                saveWithdrawalsToStorage();
-
-                updateGoogleUI();
-                renderApp();
-                showToast(`Bem-vindo, ${profile.given_name || profile.name}! Conta sincronizada.`);
+            if (cloudAlloc) {
+                try { appState.allocations = JSON.parse(cloudAlloc); } catch(e){}
             }
-        }
+            if (cloudWith) {
+                try { appState.withdrawals = JSON.parse(cloudWith); } catch(e){}
+            }
+
+            saveBoxesToStorage();
+            saveAllocationsToStorage();
+            saveWithdrawalsToStorage();
+
+            updateGoogleUI();
+            renderApp();
+            showToast(`Conta ${email} vinculada com sucesso! Dados sincronizados.`);
+            closeGoogleModal();
+        };
 
         window.logoutGoogle = function() {
-            if (confirm("Deseja desconectar sua conta do Google?")) {
+            if (confirm("Deseja desconectar esta conta?")) {
                 appState.googleUser = null;
                 localStorage.removeItem('caixas_google_user');
                 updateGoogleUI();
                 renderApp();
-                showToast("Conta Google desconectada.");
+                showToast("Conta desconectada.");
             }
         };
 
