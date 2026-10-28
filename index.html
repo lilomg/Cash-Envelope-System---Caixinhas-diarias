@@ -1500,6 +1500,7 @@
             }
         };
 
+        // Explicit Global Bindings for Modal Handlers
         window.openGoogleModal = function() {
             document.getElementById('googleSheetScriptUrl').value = appState.googleScriptUrl || '';
             updateGoogleUI();
@@ -1508,6 +1509,69 @@
 
         window.closeGoogleModal = function() {
             document.getElementById('googleModal').classList.add('hidden');
+        };
+
+        window.openBackupModal = function() { 
+            document.getElementById('backupModal').classList.remove('hidden'); 
+        };
+        
+        window.closeBackupModal = function() { 
+            document.getElementById('backupModal').classList.add('hidden'); 
+        };
+
+        window.setDateToToday = function() {
+            appState.currentDate = getTodayString();
+            initDateSelector();
+            renderApp();
+        };
+
+        window.openBoxModal = function(boxId = null) {
+            populateCategorySelect();
+            const modal = document.getElementById('boxModal');
+            const form = document.getElementById('boxForm');
+            if (form) form.reset();
+
+            if (boxId) {
+                const box = appState.boxes.find(b => b.id === boxId);
+                if (box) {
+                    document.getElementById('boxModalTitle').innerText = 'Editar Caixinha';
+                    document.getElementById('boxId').value = box.id;
+                    document.getElementById('boxName').value = box.name;
+                    document.getElementById('boxDailyTarget').value = box.dailyTarget;
+                    document.getElementById('boxColor').value = box.color || '#10b981';
+                    document.getElementById('boxIcon').value = box.icon || 'fa-house';
+
+                    const catSelect = document.getElementById('boxCategorySelect');
+                    const options = Array.from(catSelect.options).map(o => o.value);
+                    if (options.includes(box.category)) {
+                        catSelect.value = box.category;
+                        document.getElementById('boxCategoryCustom').classList.add('hidden');
+                    } else {
+                        catSelect.value = 'custom';
+                        document.getElementById('boxCategoryCustom').value = box.category || '';
+                        document.getElementById('boxCategoryCustom').classList.remove('hidden');
+                    }
+
+                    for (let i = 0; i < 7; i++) {
+                        const el = document.getElementById(`day-${i}`);
+                        if (el) el.checked = (box.activeDays || []).includes(i);
+                    }
+                }
+            } else {
+                document.getElementById('boxModalTitle').innerText = 'Nova Caixinha';
+                document.getElementById('boxId').value = '';
+                document.getElementById('boxCategoryCustom').classList.add('hidden');
+                for (let i = 1; i <= 5; i++) {
+                    const el = document.getElementById(`day-${i}`);
+                    if (el) el.checked = true;
+                }
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeBoxModal = function() {
+            document.getElementById('boxModal').classList.add('hidden');
         };
 
         window.authenticateGoogle = function() {
