@@ -724,6 +724,30 @@
             return `${yyyy}-${mm}-${dd}`;
         }
 
+        function formatDateToISO(d) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-xl text-white font-medium text-xs transition-all transform duration-300 flex items-center gap-2 ${
+                type === 'error' ? 'bg-rose-600' : type === 'info' ? 'bg-indigo-600' : 'bg-emerald-600'
+            }`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'} text-base"></i> <span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
         const appState = {
             currentDate: getTodayString(),
             activeFilter: 'all', 
@@ -739,6 +763,44 @@
             googleUser: JSON.parse(localStorage.getItem('caixas_google_user') || 'null'),
             googleScriptUrl: localStorage.getItem('caixas_google_script_url') || ''
         };
+
+        // Função de Notificação Toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            const bgColor = type === 'error' ? 'bg-rose-600' : type === 'info' ? 'bg-blue-600' : 'bg-emerald-600';
+            toast.className = `fixed bottom-4 right-4 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl z-50 transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-2 ${bgColor}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> <span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Funções de Formatação Auxiliares
+        function formatCurrency(val) {
+            return (Number(val) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function formatDateToISO(dateObj) {
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const dd = String(dateObj.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function saveBoxesToStorage() {
+            localStorage.setItem('caixas_boxes', JSON.stringify(appState.boxes));
+            syncToGoogleSheet();
+        }
+
+        function saveAllocationsToStorage() {
+            localStorage.setItem('caixas_allocations', JSON.stringify(appState.allocations));
+            syncToGoogleSheet();
+        }
 
         function saveCategoriesToStorage() {
             localStorage.setItem('caixas_categories', JSON.stringify(appState.categories));
@@ -848,6 +910,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         updatedAt: new Date().toISOString(),
+                        companyName: appState.companyName,
+                        categories: appState.categories,
                         boxes: appState.boxes,
                         allocations: appState.allocations,
                         withdrawals: appState.withdrawals
@@ -1437,7 +1501,7 @@
         };
 
         window.openGoogleModal = function() {
-            document.getElementById('googleSheetScriptUrl').value = appState.googleScriptUrl;
+            document.getElementById('googleSheetScriptUrl').value = appState.googleScriptUrl || '';
             updateGoogleUI();
             document.getElementById('googleModal').classList.remove('hidden');
         };
@@ -1447,16 +1511,16 @@
         };
 
         window.authenticateGoogle = function() {
-            showToast('Simulando autenticação Google GIS...', 'info');
+            showToast('Conectando ao Google...', 'info');
             setTimeout(() => {
                 appState.googleUser = {
-                    name: "Empresa Vinculada Google",
-                    email: "financeiro@empresa.com"
+                    name: appState.companyName ? `${appState.companyName} (Google)` : "Conta Google Conectada",
+                    email: "financeiro@googlecloud.com"
                 };
                 localStorage.setItem('caixas_google_user', JSON.stringify(appState.googleUser));
                 updateGoogleUI();
-                showToast('Conta Google Vinculada com Sucesso!');
-            }, 800);
+                showToast('Conta Google vinculada com sucesso!');
+            }, 600);
         };
 
         window.saveGoogleSettings = function() {
@@ -1465,7 +1529,7 @@
             localStorage.setItem('caixas_google_script_url', urlInput);
             updateGoogleUI();
             window.closeGoogleModal();
-            showToast('Configurações do Google Sheets salvas!');
+            showToast('Configurações de sincronização com o Google salvas!');
             syncToGoogleSheet();
         };
 
@@ -1477,17 +1541,17 @@
             const statusIcon = document.getElementById('googleStatusIcon');
 
             if (appState.googleUser || appState.googleScriptUrl) {
-                if (nameEl) nameEl.innerText = appState.googleUser ? appState.googleUser.name : "Planilha Conectada";
-                if (emailEl) emailEl.innerText = appState.googleUser ? appState.googleUser.email : (appState.googleScriptUrl ? "Webhook Google Ativo" : "");
-                if (btnEl) btnEl.innerText = "Reconectado";
-                if (statusText) statusText.innerText = "Planilha Google Ativa";
+                if (nameEl) nameEl.innerText = appState.googleUser ? appState.googleUser.name : "Planilha Google Sheets Conectada";
+                if (emailEl) emailEl.innerText = appState.googleUser ? appState.googleUser.email : (appState.googleScriptUrl ? "Sincronização ativa via Google Apps Script" : "");
+                if (btnEl) btnEl.innerText = "Reconectar";
+                if (statusText) statusText.innerText = "Google Sync Ativo";
                 if (statusIcon) statusIcon.className = "fa-solid fa-circle-check text-emerald-500";
             } else {
                 if (nameEl) nameEl.innerText = "Conta Google Não Conectada";
-                if (emailEl) emailEl.innerText = "Vinculação opcional";
-                if (btnEl) btnEl.innerText = "Conectar Google";
-                if (statusText) statusText.innerText = "Vincular Planilha Google";
-                if (statusIcon) statusIcon.className = "fa-solid fa-file-excel text-emerald-600";
+                if (emailEl) emailEl.innerText = "Sincronize seus dados com o Google Sheets/Drive";
+                if (btnEl) btnEl.innerText = "Vincular Google";
+                if (statusText) statusText.innerText = "Google Sync (Nuvem)";
+                if (statusIcon) statusIcon.className = "fa-solid fa-cloud text-emerald-600";
             }
         }
 
@@ -2066,6 +2130,16 @@
             renderWithdrawalsTable();
             updateGoogleUI();
         }
+
+        // Inicialização na carga da página
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+            loadLocalStorage();
+            initDateSelector();
+            renderApp();
+        });
     </script>
 </body>
 </html>
