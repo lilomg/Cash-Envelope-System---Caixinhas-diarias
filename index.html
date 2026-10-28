@@ -1249,37 +1249,39 @@
         };
 
         window.changeDate = function(offset) {
-        function saveBoxesToStorage() {
-            localStorage.setItem('caixas_boxes', JSON.stringify(appState.boxes));
-            if (appState.googleUser && appState.googleUser.sub) {
-                localStorage.setItem(`caixas_boxes_${appState.googleUser.sub}`, JSON.stringify(appState.boxes));
-            }
-            syncToGoogleSheet();
-        }
+            const parts = appState.currentDate.split('-');
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            d.setDate(d.getDate() + offset);
+            appState.currentDate = formatDateToISO(d);
+            initDateSelector();
+            renderApp();
+        };
 
-        function saveAllocationsToStorage() {
-            localStorage.setItem('caixas_allocations', JSON.stringify(appState.allocations));
-            if (appState.googleUser && appState.googleUser.sub) {
-                localStorage.setItem(`caixas_allocations_${appState.googleUser.sub}`, JSON.stringify(appState.allocations));
+        window.onDateSelectChange = function() {
+            const input = document.getElementById('selectedDate');
+            if (input && input.value) {
+                appState.currentDate = input.value;
+                updateDayNameLabel();
+                renderApp();
             }
-            syncToGoogleSheet();
-        }
+        };
 
-        function saveCategoriesToStorage() {
-            localStorage.setItem('caixas_categories', JSON.stringify(appState.categories));
-            if (appState.googleUser && appState.googleUser.sub) {
-                localStorage.setItem(`caixas_categories_${appState.googleUser.sub}`, JSON.stringify(appState.categories));
-            }
-            syncToGoogleSheet();
-        }
+        window.setDateToToday = function() {
+            appState.currentDate = getTodayString();
+            initDateSelector();
+            renderApp();
+        };
 
-        function saveWithdrawalsToStorage() {
-            localStorage.setItem('caixas_withdrawals', JSON.stringify(appState.withdrawals));
-            if (appState.googleUser && appState.googleUser.sub) {
-                localStorage.setItem(`caixas_withdrawals_${appState.googleUser.sub}`, JSON.stringify(appState.googleUser.sub));
+        window.filterDailyCards = function(status) {
+            appState.activeFilter = status;
+            renderDailyCards();
+        };
+
+        window.markAllToday = function(shouldAllocate) {
+            const activeBoxes = getActiveBoxesForDate(appState.currentDate);
+            if (!appState.allocations[appState.currentDate]) {
+                appState.allocations[appState.currentDate] = {};
             }
-            syncToGoogleSheet();
-        }
 
             activeBoxes.forEach(box => {
                 const currentVal = appState.allocations[appState.currentDate][box.id] || { allocated: false, cashAmount: box.dailyTarget, bankAmount: 0 };
@@ -1601,168 +1603,373 @@
             }
         };
 
-        window.openGoogleModal = function() {
-            document.getElementById('googleSheetScriptUrl').value = appState.googleScriptUrl || '';
-            updateGoogleUI();
-            document.getElementById('googleModal').classList.remove('hidden');
+        window.toggleDarkMode = function() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
         };
 
-        window.closeGoogleModal = function() {
-            document.getElementById('googleModal').classList.add('hidden');
+        window.renderCategoryFilterBar = function() {
+            const container = document.getElementById('categoryFilterContainer');
+            if (!container) return;
+
+            let html = `
+                <button onclick="filterCategory('all')" class="px-2.5 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition ${appState.selectedCategoryFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'}">
+                    Todas as Categorias
+                </button>
+            `;
+
+            appState.categories.forEach(cat => {
+                const active = appState.selectedCategoryFilter === cat;
+                html += `
+                    <button onclick="filterCategory('${cat.replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition ${active ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'}">
+                        ${cat}
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
         };
 
-        window.authenticateGoogle = function() {
-            showToast('Conectando ao Google...', 'info');
-            setTimeout(() => {
-                appState.googleUser = {
-                    name: appState.companyName ? `${appState.companyName} (Google)` : "Conta Google Conectada",
-                    email: "financeiro@googlecloud.com"
-                };
-                localStorage.setItem('caixas_google_user', JSON.stringify(appState.googleUser));
-                updateGoogleUI();
-                showToast('Conta Google vinculada com sucesso!');
-            }, 600);
-        };
-
-        window.saveGoogleSettings = function() {
-            const urlInput = document.getElementById('googleSheetScriptUrl').value.trim();
-            appState.googleScriptUrl = urlInput;
-            localStorage.setItem('caixas_google_script_url', urlInput);
-            updateGoogleUI();
-            window.closeGoogleModal();
-            showToast('Configurações de sincronização com o Google salvas!');
-            syncToGoogleSheet();
-        };
-
-        window.openCategoryManageModal = function() {
-            renderCategoryManageList();
-            document.getElementById('categoryManageModal').classList.remove('hidden');
-        };
-
-        window.closeCategoryManageModal = function() {
-            document.getElementById('categoryManageModal').classList.add('hidden');
-            populateCategorySelect();
+        window.filterCategory = function(cat) {
+            appState.selectedCategoryFilter = cat;
             renderCategoryFilterBar();
-            renderApp();
+            renderDailyCards();
         };
 
-        window.addCustomCategory = function(e) {
-            e.preventDefault();
-            const input = document.getElementById('newCategoryNameInput');
-            const catName = input.value.trim();
-            if (catName && !appState.categories.includes(catName)) {
-                appState.categories.push(catName);
-                saveCategoriesToStorage();
-                input.value = '';
-                renderCategoryManageList();
-                showToast('Nova categoria adicionada!');
+        window.renderDailyCards = function() {
+            const container = document.getElementById('dailyCardsContainer');
+            if (!container) return;
+
+            let activeBoxes = getActiveBoxesForDate(appState.currentDate);
+
+            if (appState.selectedCategoryFilter !== 'all') {
+                activeBoxes = activeBoxes.filter(b => b.category === appState.selectedCategoryFilter);
             }
-        };
 
-        window.deleteCategory = function(catName) {
-            if (confirm(`Remover a categoria "${catName}"?`)) {
-                appState.categories = appState.categories.filter(c => c !== catName);
-                saveCategoriesToStorage();
-                renderCategoryManageList();
-                showToast('Categoria removida.');
+            const dateAllocations = appState.allocations[appState.currentDate] || {};
+
+            if (appState.activeFilter === 'completed') {
+                activeBoxes = activeBoxes.filter(b => dateAllocations[b.id] && dateAllocations[b.id].allocated);
+            } else if (appState.activeFilter === 'pending') {
+                activeBoxes = activeBoxes.filter(b => !dateAllocations[b.id] || !dateAllocations[b.id].allocated);
             }
-        };
 
-        window.openBackupModal = function() { document.getElementById('backupModal').classList.remove('hidden'); };
-        window.closeBackupModal = function() { document.getElementById('backupModal').classList.add('hidden'); };
-
-        window.onCategorySelectChange = function() {
-            const select = document.getElementById('boxCategorySelect');
-            const customInput = document.getElementById('boxCategoryCustom');
-            if (select.value === 'custom') {
-                customInput.classList.remove('hidden');
-                customInput.required = true;
-            } else {
-                customInput.classList.add('hidden');
-                customInput.required = false;
+            if (activeBoxes.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700">
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 dark:text-slate-600 mb-2"></i>
+                        <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Nenhuma caixinha encontrada para os filtros selecionados neste dia.</p>
+                    </div>
+                `;
+                return;
             }
-        };
 
-        window.exportJSON = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `caixas_backup_${getTodayString()}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast('Backup exportado com sucesso!');
-        };
+            const grouped = {};
+            activeBoxes.forEach(box => {
+                const cat = box.category || 'Gerais';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(box);
+            });
 
-        window.importJSON = function(event) {
-            const fileReader = new FileReader();
-            fileReader.onload = function(e) {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed.boxes && parsed.allocations) {
-                        appState.boxes = parsed.boxes;
-                        appState.allocations = parsed.allocations;
-                        appState.withdrawals = parsed.withdrawals || [];
-                        saveBoxesToStorage();
-                        saveAllocationsToStorage();
-                        saveWithdrawalsToStorage();
-                        renderApp();
-                        window.closeBackupModal();
-                        showToast('Dados importados com sucesso!');
-                    } else {
-                        showToast('Arquivo de backup inválido.', 'error');
+            const mData = calculateMonthlyTotals(appState.currentDate);
+            const gData = calculateBoxBalances();
+
+            let html = '';
+
+            Object.keys(grouped).forEach(catName => {
+                const boxesInGroup = grouped[catName];
+                
+                let catTarget = 0;
+                let catAllocated = 0;
+
+                boxesInGroup.forEach(b => {
+                    catTarget += b.dailyTarget;
+                    const alloc = dateAllocations[b.id];
+                    if (alloc && alloc.allocated) {
+                        const cash = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : b.dailyTarget);
+                        const bank = Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
+                        catAllocated += (cash + bank);
                     }
-                } catch (err) {
-                    showToast('Erro ao ler arquivo JSON.', 'error');
+                });
+
+                html += `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between px-1">
+                            <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                ${catName} (${boxesInGroup.length})
+                            </h4>
+                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                Alocado: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(catAllocated)}</strong> / ${formatCurrency(catTarget)}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                `;
+
+                boxesInGroup.forEach(box => {
+                    const alloc = dateAllocations[box.id] || { allocated: false, cashAmount: box.dailyTarget, bankAmount: 0 };
+                    const isAllocated = !!alloc.allocated;
+                    const cashVal = alloc.cashAmount !== undefined ? alloc.cashAmount : box.dailyTarget;
+                    const bankVal = alloc.bankAmount !== undefined ? alloc.bankAmount : 0;
+                    const totalAlloc = cashVal + bankVal;
+
+                    const monthBal = mData.perBox[box.id] || { totalNet: 0 };
+                    const globalBal = gData.perBox[box.id] || { totalNet: 0 };
+
+                    html += `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border transition shadow-sm ${
+                            isAllocated ? 'border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/20 dark:bg-emerald-950/10' : 'border-slate-200 dark:border-slate-700'
+                        }">
+                            <div class="flex items-start justify-between gap-2 mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0 shadow-sm" style="background-color: ${box.color || '#10b981'}">
+                                        <i class="fa-solid ${box.icon || 'fa-vault'}"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold text-sm text-slate-800 dark:text-white leading-tight">${box.name}</h5>
+                                        <span class="text-[11px] text-slate-400 font-medium">Meta: ${formatCurrency(box.dailyTarget)}</span>
+                                    </div>
+                                </div>
+                                <button onclick="toggleAllocation('${box.id}')" class="p-2 rounded-xl transition ${
+                                    isAllocated ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-100 text-slate-400 dark:bg-slate-700 hover:text-slate-600'
+                                }" title="${isAllocated ? 'Meta Atingida' : 'Marcar como Alocado'}">
+                                    <i class="fa-solid ${isAllocated ? 'fa-check-circle' : 'fa-circle'} text-lg"></i>
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 my-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600/60">
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-400 uppercase">Dinheiro</label>
+                                    <input type="number" step="0.01" value="${cashVal}" onchange="updateAllocationAmounts('${box.id}', this.value, null)" class="w-full text-xs font-bold bg-transparent text-emerald-600 dark:text-emerald-400 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-400 uppercase">Banco/PIX</label>
+                                    <input type="number" step="0.01" value="${bankVal}" onchange="updateAllocationAmounts('${box.id}', null, this.value)" class="w-full text-xs font-bold bg-transparent text-cyan-600 dark:text-cyan-400 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-700/80 text-[11px] text-slate-500 dark:text-slate-400">
+                                <div class="flex justify-between">
+                                    <span>Guardado no Mês:</span>
+                                    <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(monthBal.totalNet)}</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Acumulado Histórico:</span>
+                                    <strong class="text-indigo-600 dark:text-indigo-400">${formatCurrency(globalBal.totalNet)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        };
+
+        window.renderBoxesList = function() {
+            const container = document.getElementById('boxesListContainer');
+            if (!container) return;
+
+            const boxCountBadge = document.getElementById('boxCountBadge');
+            if (boxCountBadge) boxCountBadge.innerText = appState.boxes.length;
+
+            if (appState.boxes.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700">
+                        <i class="fa-solid fa-boxes-stacked text-4xl text-slate-300 dark:text-slate-600 mb-2"></i>
+                        <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Nenhuma caixinha cadastrada ainda.</p>
+                        <button onclick="openBoxModal()" class="mt-3 px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold shadow">Cadastrar Primeira Caixinha</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const gData = calculateBoxBalances();
+            const mData = calculateMonthlyTotals(appState.currentDate);
+
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+
+            appState.boxes.forEach(box => {
+                const bGlobal = gData.perBox[box.id] || { netCash: 0, netBank: 0, wCash: 0, wBank: 0, totalNet: 0 };
+                const bMonth = mData.perBox[box.id] || { totalNet: 0, wCash: 0, wBank: 0 };
+
+                html += `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm" style="background-color: ${box.color || '#10b981'}">
+                                    <i class="fa-solid ${box.icon || 'fa-vault'}"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-800 dark:text-white leading-tight">${box.name}</h4>
+                                    <span class="text-[11px] text-slate-400 font-medium">${box.category || 'Geral'}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="editBox('${box.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 transition" title="Editar">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
+                                <button onclick="deleteBox('${box.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 transition" title="Excluir">
+                                    <i class="fa-solid fa-trash text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl text-xs border border-slate-100 dark:border-slate-600/60">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">Meta Diária:</span>
+                                <strong class="text-slate-800 dark:text-white">${formatCurrency(box.dailyTarget)}</strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">Saldo Dinheiro:</span>
+                                <strong class="text-emerald-600 dark:text-emerald-400">${formatCurrency(bGlobal.netCash)}</strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500 dark:text-slate-400">Saldo Banco/PIX:</span>
+                                <strong class="text-cyan-600 dark:text-cyan-400">${formatCurrency(bGlobal.netBank)}</strong>
+                            </div>
+                            <div class="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-600">
+                                <span class="font-bold text-slate-700 dark:text-slate-200">Saldo Global Total:</span>
+                                <strong class="text-indigo-600 dark:text-indigo-400 font-extrabold">${formatCurrency(bGlobal.totalNet)}</strong>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center text-xs pt-1">
+                            <span class="text-slate-400">No Mês: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(bMonth.totalNet)}</strong></span>
+                            <button onclick="openWithdrawalModal('${box.id}')" class="text-xs text-rose-600 dark:text-rose-400 font-semibold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-minus-circle"></i> Retirar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        };
+
+        window.renderMonthlySummary = function() {
+            const labelEl = document.getElementById('monthlyPeriodLabel');
+            if (labelEl) {
+                const parts = appState.currentDate.split('-');
+                const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                labelEl.innerText = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            }
+
+            const mData = calculateMonthlyTotals(appState.currentDate);
+            const listContainer = document.getElementById('monthlyProgressList');
+
+            if (listContainer) {
+                let html = '';
+                appState.boxes.forEach(box => {
+                    const item = mData.perBox[box.id] || { netCash: 0, netBank: 0, totalNet: 0 };
+                    html += `
+                        <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600/60 space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-slate-800 dark:text-white">
+                                <span>${box.name}</span>
+                                <span>${formatCurrency(item.totalNet)}</span>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>Espécie: ${formatCurrency(item.netCash)}</span>
+                                <span>Banco: ${formatCurrency(item.netBank)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html || '<p class="text-xs text-slate-400">Sem lançamentos neste mês.</p>';
+            }
+
+            const ctx = document.getElementById('monthlyChart');
+            if (ctx && typeof Chart !== 'undefined') {
+                if (appState.chartInstance) {
+                    appState.chartInstance.destroy();
                 }
-            };
-            fileReader.readAsText(event.target.files[0]);
-        };
 
-        window.resetToDefaultData = function() {
-            if (confirm('Restaurar para os dados demonstrativos?')) {
-                appState.boxes = [...DEFAULT_BOXES];
-                appState.allocations = {};
-                appState.withdrawals = [];
-                saveBoxesToStorage();
-                saveAllocationsToStorage();
-                saveWithdrawalsToStorage();
-                renderApp();
-                window.closeBackupModal();
-                showToast('Dados restaurados!');
+                const labels = appState.boxes.map(b => b.name);
+                const dataValues = appState.boxes.map(b => (mData.perBox[b.id] || {}).totalNet || 0);
+
+                appState.chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Acumulado Líquido no Mês (R$)',
+                            data: dataValues,
+                            backgroundColor: '#10b981',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
             }
         };
 
-        window.switchTab = function(tab) {
-            document.getElementById('viewDaily').classList.add('hidden');
-            document.getElementById('viewBoxes').classList.add('hidden');
-            document.getElementById('viewMonthly').classList.add('hidden');
-            document.getElementById('viewWithdrawals').classList.add('hidden');
+        window.renderWithdrawalsTable = function() {
+            const body = document.getElementById('withdrawalsTableBody');
+            const badge = document.getElementById('withdrawalCountBadge');
+            if (badge) badge.innerText = appState.withdrawals.length;
 
-            const inactiveTabClass = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2 whitespace-nowrap";
-            const activeTabClass = "pb-3 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-600 dark:text-emerald-400 flex items-center gap-2 whitespace-nowrap";
+            if (!body) return;
 
-            document.getElementById('tabBtnDaily').className = inactiveTabClass;
-            document.getElementById('tabBtnBoxes').className = inactiveTabClass;
-            document.getElementById('tabBtnMonthly').className = inactiveTabClass;
-            document.getElementById('tabBtnWithdrawals').className = inactiveTabClass;
-
-            if (tab === 'daily') {
-                document.getElementById('viewDaily').classList.remove('hidden');
-                document.getElementById('tabBtnDaily').className = activeTabClass;
-            } else if (tab === 'boxes') {
-                document.getElementById('viewBoxes').classList.remove('hidden');
-                document.getElementById('tabBtnBoxes').className = activeTabClass;
-                renderBoxesList();
-            } else if (tab === 'monthly') {
-                document.getElementById('viewMonthly').classList.remove('hidden');
-                document.getElementById('tabBtnMonthly').className = activeTabClass;
-                renderMonthlySummary();
-            } else if (tab === 'withdrawals') {
-                document.getElementById('viewWithdrawals').classList.remove('hidden');
-                document.getElementById('tabBtnWithdrawals').className = activeTabClass;
-                renderWithdrawalsTable();
+            if (appState.withdrawals.length === 0) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-6 text-center text-slate-400 text-xs">Nenhuma retirada ou débito registrado.</td>
+                    </tr>
+                `;
+                return;
             }
+
+            const sorted = [...appState.withdrawals].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let html = '';
+            sorted.forEach(w => {
+                const box = appState.boxes.find(b => b.id === w.boxId);
+                const boxName = box ? box.name : 'Caixinha Excluída';
+
+                html += `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                        <td class="p-3.5 font-medium">${w.date}</td>
+                        <td class="p-3.5 font-bold text-slate-800 dark:text-white">${boxName}</td>
+                        <td class="p-3.5 capitalize">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                                w.source === 'bank' ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            }">
+                                ${w.source === 'bank' ? 'Banco/PIX' : 'Dinheiro'}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-slate-600 dark:text-slate-300">${w.note || '-'}</td>
+                        <td class="p-3.5 text-right font-bold text-rose-600 dark:text-rose-400">-${formatCurrency(w.amount)}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteWithdrawal('${w.id}')" class="text-slate-400 hover:text-rose-600 transition" title="Excluir Retirada">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            body.innerHTML = html;
+        };
+
+        window.renderApp = function() {
+            renderKPIs();
+            renderCategoryFilterBar();
+            renderDailyCards();
         };
 
         // Inicialização na carga da página
