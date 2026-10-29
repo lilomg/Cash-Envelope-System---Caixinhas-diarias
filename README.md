@@ -1,95 +1,86 @@
-📦 CaixasDiárias - Gestão de Caixinhas Financeiras para Empresas
+[readme_gerenciador_de_caixinhas_financeiras.txt](https://github.com/user-attachments/files/34129931/readme_gerenciador_de_caixinhas_financeiras.txt)
+========================================================================
+             CAIXAS DIÁRIAS - GESTÃO FINANCEIRA EMPRESARIAL
+========================================================================
 
-O CaixasDiárias é um sistema web responsivo (Single Page Application - SPA) focado na metodologia de alocação diária de recursos por centro de custos/despesas (método de caixinhas). Ele permite que pequenas e médias empresas reservem, diariamente e de forma disciplinada, os valores necessários para cobrir suas despesas operacionais recorrentes, como aluguel, pro-labore, folha, fornecedores, impostos e reservas.
+SOBRE O SISTEMA
+------------------------------------------------------------------------
+O "Caixas Diárias" é uma aplicação web (Single Page Application - SPA) 
+desenvolvida para gestão financeira empresarial com foco na metodologia 
+de alocação diária por centros de custos ("caixinhas").
 
-🎯 Funcionalidades Principais
+O sistema permite que empresas reservem valores diariamente para cobrir 
+despesas recorrentes (aluguel, salários, fornecedores, impostos, 
+empréstimos) e acompanhem o saldo acumulado em tempo real.
 
-Alocação Diária Fracionada:
 
-Definição de metas diárias de alocação por caixinha.
+RECURSOS E FUNCIONALIDADES PRINCIPAIS
+------------------------------------------------------------------------
+1. ALOCAÇÃO DIÁRIA DE RECURSOS:
+   - Definição de metas diárias por caixinha.
+   - Configuração de dias ativos na semana (ex: Seg-Sex, Finais de semana).
+   - Divisão de valores guardados entre Dinheiro (Espécie) e Banco/PIX.
+   - Lupa de busca em tempo real (pesquisa por nome ou categoria).
+   - Filtros de ordenação (Ordem de criação, Alfabética A-Z ou Categoria).
+   - Botões de atalho (+ e -) em cada card para entradas e retiradas rápidas.
 
-Escolha dos dias da semana ativos para cada despesa (ex: 5 dias por semana, finais de semana ou dias específicos).
+2. METAS MENSAIS OPCIONAIS:
+   - Configuração facultativa de meta mensal (R$) por caixinha.
+   - Barras de progresso e porcentagem de atingimento no mês.
 
-Separação dos valores guardados em Dinheiro (Espécie) e Conta Corrente (PIX/Banco).
+3. PAINEL DE DADOS GERENCIAIS:
+   - Modal com métricas consolidadas:
+     * Movimentação do dia (Dinheiro, Banco e Total Alocado).
+     * Acumulado Líquido do Mês (Entradas menos Retiradas).
+     * Acumulado Histórico Global de todas as caixinhas.
 
-Botões de alocação rápida (Marcar Todos / Limpar Dia) e marcação individual.
+4. DIVERSIDADE DE CATEGORIAS E ÍCONES:
+   - Gerenciador completo de categorias personalizadas.
+   - Suporte a ícones dedicados (ex: Gastos com Funcionários, Empréstimos &
+     Financiamentos, Pro-labore, Fornecedores, Impostos, etc.).
 
-Visão Financeira Completa:
+5. HISTÓRICO DE RETIRADAS E DÉBITOS:
+   - Registro de saídas especificando a caixinha, a origem (Dinheiro/Banco),
+     data e motivo/descrição.
+   - Tabela detalhada de histórico com suporte a exclusão/estorno.
 
-Exibição dos valores acumulados em cada caixinha no Mês Atual e no Histórico Global.
+6. RESUMO E GRÁFICOS POR PERÍODO:
+   - Gráfico de barras comparativo (Chart.js) do acumulado mensal.
+   - Detalhamento individual de cada caixinha no período.
 
-Rastreamento visual de metas diárias atingidas e caixinhas com pendências no dia.
+7. SINCRONIZAÇÃO EM NUVEM & MULTI-DISPOSITIVO (GOOGLE SYNC):
+   - Conexão por e-mail no modal Google Sync (Nuvem).
+   - Sincronização automática entre Computador, Celular e Tablet.
+   - Integração opcional com Google Sheets através de Google Apps Script.
 
-Gráfico interativo comparativo de saldos mensais por caixinha (alimentado por Chart.js).
+8. PERSONALIZAÇÃO DA EMPRESA:
+   - Customização do nome, subtítulo e upload de logo (.jpg / .png).
 
-Gestão Integrada de Retiradas e Débitos:
+9. BACKUP E SEGURANÇA:
+   - Exportação e importação de backups em formato .json.
+   - Opção de restaurar caixinhas demonstrativas padrão.
+   - Suporte a Modo Claro / Modo Escuro (Dark Mode).
 
-Modal para registrar pagamentos ou resgates das caixinhas.
 
-Escolha da fonte do recurso retirado (Dinheiro ou Banco).
+COMO EXECUTAR O PROJETO
+------------------------------------------------------------------------
+1. Baixe ou salve o arquivo `index.html`.
+2. Abra o arquivo `index.html` em qualquer navegador web moderno 
+   (Google Chrome, Microsoft Edge, Mozilla Firefox, Safari).
+3. Não é necessária a instalação de servidores ou dependências locais.
 
-Dedução automática dos valores debitados no saldo da caixinha, no acumulado do mês e no histórico global.
 
-Extrato/Histórico completo de retiradas com opção de estorno.
+TECNOLOGIAS UTILIZADAS
+------------------------------------------------------------------------
+- HTML5 & JavaScript ES6+ (Módulos)
+- Tailwind CSS (Interface responsiva e Dark Mode)
+- FontAwesome 6 (Ícones vetoriais)
+- Chart.js (Gráficos interativos)
+- LocalStorage & Fetch API (Armazenamento local e integração com Nuvem)
+- Google Identity Services API (Estrutura de autenticação)
 
-Recursos Adicionais:
 
-Modo Escuro / Modo Claro (Dark/Light Mode): Botão no cabeçalho com alternância dinâmica de tema e persistência de escolha.
-
-Backup e Restauração: Exportação e importação dos dados em formato JSON para cópia de segurança e transferência entre aparelhos.
-
-Offline-First: Armazenamento seguro de todas as informações diretamente no localStorage do navegador, sem necessidade de banco de dados externo ou servidor.
-
-🚀 Como Executar o Projeto Localmente
-
-Faça o download ou copie o código do arquivo index.html.
-
-Salve o arquivo em uma pasta no seu computador como index.html.
-
-Dê dois cliques no arquivo para abri-lo em qualquer navegador de sua preferência (Google Chrome, Microsoft Edge, Mozilla Firefox, Safari).
-
-🌐 Como Publicar como Web App Gratuitamente
-
-Opção 1: Netlify (Recomendado - 2 minutos)
-
-Acesse netlify.com e crie uma conta gratuita.
-
-Acesse a aba Sites.
-
-Arraste a pasta que contém o arquivo index.html e solte dentro do painel do Netlify.
-
-Seu aplicativo estará disponível instantaneamente em um link HTTPS do tipo https://seu-nome.netlify.app.
-
-Opção 2: GitHub Pages
-
-Acesse github.com e crie um repositório público.
-
-Faça upload do arquivo index.html.
-
-Acesse Settings > Pages do repositório, selecione a branch main e salve.
-
-Aguarde a ativação da URL pública no formato https://seu-usuario.github.io/nome-do-repositorio/.
-
-📱 Instalação no Celular sem Loja (PWA / Atalho)
-
-O aplicativo é 100% responsivo e pode ser adicionado à tela inicial do seu dispositivo móvel:
-
-Android (Chrome): Acesse a URL do app no navegador, toque no menu de 3 pontos no canto superior e selecione "Adicionar à tela inicial" ou "Instalar aplicativo".
-
-iPhone / iOS (Safari): Acesse a URL no Safari, toque no ícone de Compartilhar (quadrado com seta para cima) e escolha "Adicionar à Tela de Início".
-
-🛠️ Tecnologias Utilizadas
-
-HTML5 / Single-Page Architecture
-
-Tailwind CSS (v3): Estilização moderna e suporte a temas.
-
-FontAwesome (v6): Conjunto de ícones para componentes visuais.
-
-Chart.js: Renderização do gráfico de progresso mensal.
-
-JavaScript (ES6+): Regras de negócio, cálculos financeiros, manipuladores do DOM e controle do localStorage.
-
-🔒 Privacidade e Segurança dos Dados
-
-Todos os registros inseridos nesta aplicação permanecem restritos ao navegador do usuário (localStorage). Nenhuma informação financeira é enviada para servidores externos ou terceiros.
+DIREITOS AUTORAIS
+------------------------------------------------------------------------
+© Caixas Diárias - Sistema de Gestão e Alocação Financeira Empresarial.
+Todos os direitos reservados.
