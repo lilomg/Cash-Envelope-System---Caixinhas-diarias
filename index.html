@@ -1083,37 +1083,64 @@
         }
 
         function updateDayNameLabel() {
-            const dayLabel = document.getElementById('selectedDayName');
-            if (!dayLabel) return;
+            const label = document.getElementById('selectedDayName');
+            if (!label) return;
             const parts = appState.currentDate.split('-');
             const d = new Date(parts[0], parts[1] - 1, parts[2]);
-            const options = { weekday: 'long', day: 'numeric', month: 'long' };
-            dayLabel.innerText = d.toLocaleDateString('pt-BR', options);
+            label.innerText = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function updateGoogleUI() {
+            const nameEl = document.getElementById('googleUserName');
+            const emailEl = document.getElementById('googleUserEmail');
+            const logoutBtn = document.getElementById('googleLogoutBtn');
+            const formSection = document.getElementById('manualSyncForm');
+            const statusIcon = document.getElementById('googleStatusIcon');
+            const statusText = document.getElementById('googleStatusText');
+
+            if (appState.googleUser) {
+                if (nameEl) nameEl.innerText = appState.googleUser.name || 'Usuário Conectado';
+                if (emailEl) emailEl.innerText = appState.googleUser.email || '';
+                if (logoutBtn) logoutBtn.classList.remove('hidden');
+                if (formSection) formSection.classList.add('hidden');
+                if (statusIcon) statusIcon.className = 'fa-solid fa-cloud-check text-emerald-500';
+                if (statusText) statusText.innerText = `Nuvem: ${appState.googleUser.email}`;
+            } else {
+                if (nameEl) nameEl.innerText = 'Conta Não Conectada';
+                if (emailEl) emailEl.innerText = 'Informe seu e-mail para ativar a sincronização';
+                if (logoutBtn) logoutBtn.classList.add('hidden');
+                if (formSection) formSection.classList.remove('hidden');
+                if (statusIcon) statusIcon.className = 'fa-solid fa-cloud text-amber-500';
+                if (statusText) statusText.innerText = 'Google Sync (Nuvem)';
+            }
         }
 
         function renderCategoryManageList() {
-            const container = document.getElementById('categoryManageList');
-            if (!container) return;
-            container.innerHTML = '';
+            const list = document.getElementById('categoryManageList');
+            if (!list) return;
 
+            let html = '';
             appState.categories.forEach(cat => {
-                const item = document.createElement('div');
-                item.className = "flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-600/60";
-                item.innerHTML = `
-                    <span>${cat}</span>
-                    <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" title="Excluir" class="text-slate-400 hover:text-rose-600 transition">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+                const isDefault = DEFAULT_CATEGORIES.includes(cat);
+                html += `
+                    <div class="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-xs">
+                        <span class="font-medium text-slate-700 dark:text-slate-200">${cat}</span>
+                        ${!isDefault ? `
+                            <button onclick="deleteCategory('${cat.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-rose-600 transition" title="Excluir">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        ` : '<span class="text-[10px] text-slate-400">Padrão</span>'}
+                    </div>
                 `;
-                container.appendChild(item);
             });
+            list.innerHTML = html;
         }
 
         function populateCategorySelect() {
             const select = document.getElementById('boxCategorySelect');
             if (!select) return;
-            select.innerHTML = '';
 
+            select.innerHTML = '';
             appState.categories.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat;
@@ -1123,43 +1150,91 @@
 
             const customOpt = document.createElement('option');
             customOpt.value = 'custom';
-            customOpt.innerText = '+ Nova Categoria Personalizada...';
+            customOpt.innerText = '+ Outra Categoria / Novo Tipo...';
             select.appendChild(customOpt);
         }
 
-        function updateGoogleUI() {
-            const nameEl = document.getElementById('googleUserName');
-            const emailEl = document.getElementById('googleUserEmail');
-            const avatarEl = document.getElementById('googleUserAvatar');
-            const logoutBtn = document.getElementById('googleLogoutBtn');
-            const manualForm = document.getElementById('manualSyncForm');
-            const statusText = document.getElementById('googleStatusText');
-            const statusIcon = document.getElementById('googleStatusIcon');
-
-            if (appState.googleUser) {
-                if (nameEl) nameEl.innerText = appState.googleUser.name || appState.googleUser.email;
-                if (emailEl) emailEl.innerText = appState.googleUser.email;
-                if (avatarEl) {
-                    if (appState.googleUser.picture) {
-                        avatarEl.innerHTML = `<img src="${appState.googleUser.picture}" class="w-full h-full object-cover">`;
-                    } else {
-                        avatarEl.innerHTML = `<i class="fa-solid fa-user-check"></i>`;
-                    }
-                }
-                if (logoutBtn) logoutBtn.classList.remove('hidden');
-                if (manualForm) manualForm.classList.add('hidden');
-                if (statusText) statusText.innerText = `Sincronizado: ${appState.googleUser.email.split('@')[0]}`;
-                if (statusIcon) statusIcon.className = "fa-solid fa-circle-check text-emerald-500";
+        window.onCategorySelectChange = function() {
+            const val = document.getElementById('boxCategorySelect').value;
+            const customInput = document.getElementById('boxCategoryCustom');
+            if (val === 'custom') {
+                customInput.classList.remove('hidden');
             } else {
-                if (nameEl) nameEl.innerText = "Conta Não Conectada";
-                if (emailEl) emailEl.innerText = "Informe seu e-mail para ativar a sincronização";
-                if (avatarEl) avatarEl.innerHTML = `<i class="fa-brands fa-google"></i>`;
-                if (logoutBtn) logoutBtn.classList.add('hidden');
-                if (manualForm) manualForm.classList.remove('hidden');
-                if (statusText) statusText.innerText = "Sincronizar Nuvem";
-                if (statusIcon) statusIcon.className = "fa-solid fa-cloud text-emerald-600";
+                customInput.classList.add('hidden');
             }
-        }
+        };
+
+        window.saveCategoriesToStorage = function() {
+            localStorage.setItem('caixas_categories', JSON.stringify(appState.categories));
+            syncToGoogleSheet();
+        };
+
+        window.openCategoryManageModal = function() {
+            renderCategoryManageList();
+            document.getElementById('categoryManageModal').classList.remove('hidden');
+        };
+
+        window.closeCategoryManageModal = function() {
+            document.getElementById('categoryManageModal').classList.add('hidden');
+        };
+
+        window.addCustomCategory = function(e) {
+            e.preventDefault();
+            const input = document.getElementById('newCategoryNameInput');
+            const newCat = input ? input.value.trim() : '';
+
+            if (!newCat) return;
+
+            if (appState.categories.includes(newCat)) {
+                showToast('Esta categoria já existe!', 'error');
+                return;
+            }
+
+            appState.categories.push(newCat);
+            window.saveCategoriesToStorage();
+            if (input) input.value = '';
+            renderCategoryManageList();
+            renderCategoryFilterBar();
+            populateCategorySelect();
+            showToast('Nova categoria cadastrada com sucesso!');
+        };
+
+        window.deleteCategory = function(catName) {
+            if (confirm(`Excluir a categoria "${catName}"?`)) {
+                appState.categories = appState.categories.filter(c => c !== catName);
+                window.saveCategoriesToStorage();
+                renderCategoryManageList();
+                renderCategoryFilterBar();
+                populateCategorySelect();
+                showToast('Categoria removida.', 'info');
+            }
+        };
+
+        window.switchTab = function(tabName) {
+            const tabs = ['daily', 'boxes', 'monthly', 'withdrawals'];
+            tabs.forEach(t => {
+                const view = document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (view) view.classList.add('hidden');
+                if (btn) {
+                    btn.classList.remove('border-emerald-600', 'text-emerald-600', 'dark:text-emerald-400');
+                    btn.classList.add('border-transparent', 'text-slate-500');
+                }
+            });
+
+            const activeView = document.getElementById(`view${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            const activeBtn = document.getElementById(`tabBtn${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+
+            if (activeView) activeView.classList.remove('hidden');
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-slate-500');
+                activeBtn.classList.add('border-emerald-600', 'text-emerald-600', 'dark:text-emerald-400');
+            }
+
+            if (tabName === 'boxes') window.renderBoxesList();
+            if (tabName === 'monthly') window.renderMonthlySummary();
+            if (tabName === 'withdrawals') window.renderWithdrawalsTable();
+        };
 
         window.loginWithEmail = function() {
             const emailInput = document.getElementById('googleEmailInput');
@@ -1181,15 +1256,17 @@
             };
 
             localStorage.setItem('caixas_google_user', JSON.stringify(appState.googleUser));
+            localStorage.setItem('caixas_sync_email', email);
 
-            // Carrega dados sincronizados na nuvem local associados a este e-mail
             const cloudBoxesKey = `caixas_boxes_${userSub}`;
             const cloudAllocKey = `caixas_allocations_${userSub}`;
             const cloudWithKey = `caixas_withdrawals_${userSub}`;
+            const cloudCatKey = `caixas_categories_${userSub}`;
 
             const cloudBoxes = localStorage.getItem(cloudBoxesKey);
             const cloudAlloc = localStorage.getItem(cloudAllocKey);
             const cloudWith = localStorage.getItem(cloudWithKey);
+            const cloudCat = localStorage.getItem(cloudCatKey);
 
             if (cloudBoxes) {
                 try { appState.boxes = JSON.parse(cloudBoxes); } catch(e){}
@@ -1200,10 +1277,14 @@
             if (cloudWith) {
                 try { appState.withdrawals = JSON.parse(cloudWith); } catch(e){}
             }
+            if (cloudCat) {
+                try { appState.categories = JSON.parse(cloudCat); } catch(e){}
+            }
 
             saveBoxesToStorage();
             saveAllocationsToStorage();
             saveWithdrawalsToStorage();
+            saveCategoriesToStorage();
 
             updateGoogleUI();
             renderApp();
@@ -1230,12 +1311,79 @@
             document.getElementById('googleModal').classList.add('hidden');
         };
 
-        window.authenticateGoogle = function() {
-            renderGoogleSignInButton();
+        window.openBackupModal = function() {
+            document.getElementById('backupModal').classList.remove('hidden');
         };
 
-        window.saveGoogleSettings = function() {
-            window.closeGoogleModal();
+        window.closeBackupModal = function() {
+            document.getElementById('backupModal').classList.add('hidden');
+        };
+
+        window.exportJSON = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                companyName: appState.companyName,
+                companySubtext: appState.companySubtext,
+                companyLogo: appState.companyLogo,
+                categories: appState.categories,
+                boxes: appState.boxes,
+                allocations: appState.allocations,
+                withdrawals: appState.withdrawals
+            }, null, 2));
+
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `caixas_diarias_backup_${getTodayString()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Backup baixado com sucesso!');
+        };
+
+        window.importJSON = function(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.boxes) appState.boxes = imported.boxes;
+                    if (imported.allocations) appState.allocations = imported.allocations;
+                    if (imported.withdrawals) appState.withdrawals = imported.withdrawals;
+                    if (imported.categories) appState.categories = imported.categories;
+                    if (imported.companyName) {
+                        appState.companyName = imported.companyName;
+                        localStorage.setItem('caixas_company_name', imported.companyName);
+                    }
+
+                    saveBoxesToStorage();
+                    saveAllocationsToStorage();
+                    saveWithdrawalsToStorage();
+                    saveCategoriesToStorage();
+
+                    renderApp();
+                    closeBackupModal();
+                    showToast('Backup restaurado com sucesso!');
+                } catch(err) {
+                    showToast('Erro ao ler o arquivo de backup. Formato inválido.', 'error');
+                }
+            };
+            fileReader.readAsText(event.target.files[0]);
+        };
+
+        window.resetToDefaultData = function() {
+            if (confirm('Atenção: Isso irá substituir todas as suas caixinhas e lançamentos atuais pelos dados demonstrativos padrão. Deseja prosseguir?')) {
+                appState.boxes = DEFAULT_BOXES;
+                appState.allocations = {};
+                appState.withdrawals = [];
+                appState.categories = DEFAULT_CATEGORIES;
+
+                saveBoxesToStorage();
+                saveAllocationsToStorage();
+                saveWithdrawalsToStorage();
+                saveCategoriesToStorage();
+
+                renderApp();
+                closeBackupModal();
+                showToast('Dados padrão restaurados!');
+            }
         };
 
         window.changeDate = function(offset) {
@@ -1701,7 +1849,6 @@
                     const isAllocated = !!alloc.allocated;
                     const cashVal = alloc.cashAmount !== undefined ? alloc.cashAmount : box.dailyTarget;
                     const bankVal = alloc.bankAmount !== undefined ? alloc.bankAmount : 0;
-                    const totalAlloc = cashVal + bankVal;
 
                     const monthBal = mData.perBox[box.id] || { totalNet: 0 };
                     const globalBal = gData.perBox[box.id] || { totalNet: 0 };
@@ -1785,8 +1932,8 @@
             let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
 
             appState.boxes.forEach(box => {
-                const bGlobal = gData.perBox[box.id] || { netCash: 0, netBank: 0, wCash: 0, wBank: 0, totalNet: 0 };
-                const bMonth = mData.perBox[box.id] || { totalNet: 0, wCash: 0, wBank: 0 };
+                const bGlobal = gData.perBox[box.id] || { netCash: 0, netBank: 0, totalNet: 0 };
+                const bMonth = mData.perBox[box.id] || { totalNet: 0 };
 
                 html += `
                     <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
@@ -1969,6 +2116,7 @@
             }
             loadLocalStorage();
             initDateSelector();
+            updateGoogleUI();
             renderApp();
         });
     </script>
