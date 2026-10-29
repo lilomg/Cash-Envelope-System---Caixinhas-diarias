@@ -1312,34 +1312,43 @@
         };
 
         window.openBackupModal = function() {
-            document.getElementById('backupModal').classList.remove('hidden');
+            const modal = document.getElementById('backupModal');
+            if (modal) modal.classList.remove('hidden');
         };
 
         window.closeBackupModal = function() {
-            document.getElementById('backupModal').classList.add('hidden');
+            const modal = document.getElementById('backupModal');
+            if (modal) modal.classList.add('hidden');
         };
 
         window.exportJSON = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-                companyName: appState.companyName,
-                companySubtext: appState.companySubtext,
-                companyLogo: appState.companyLogo,
-                categories: appState.categories,
-                boxes: appState.boxes,
-                allocations: appState.allocations,
-                withdrawals: appState.withdrawals
-            }, null, 2));
+            try {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                    companyName: appState.companyName,
+                    companySubtext: appState.companySubtext,
+                    companyLogo: appState.companyLogo,
+                    categories: appState.categories,
+                    boxes: appState.boxes,
+                    allocations: appState.allocations,
+                    withdrawals: appState.withdrawals
+                }, null, 2));
 
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `caixas_diarias_backup_${getTodayString()}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast('Backup baixado com sucesso!');
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `caixas_diarias_backup_${getTodayString()}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                showToast('Backup baixado com sucesso!');
+            } catch(err) {
+                showToast('Erro ao exportar o arquivo de backup.', 'error');
+            }
         };
 
         window.importJSON = function(event) {
+            const file = event.target ? event.target.files[0] : null;
+            if (!file) return;
+
             const fileReader = new FileReader();
             fileReader.onload = function(e) {
                 try {
@@ -1365,7 +1374,7 @@
                     showToast('Erro ao ler o arquivo de backup. Formato inválido.', 'error');
                 }
             };
-            fileReader.readAsText(event.target.files[0]);
+            fileReader.readAsText(file);
         };
 
         window.resetToDefaultData = function() {
