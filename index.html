@@ -846,6 +846,10 @@
             { id: 'box-7', name: 'Reserva de Emergência', category: '🐷 Reservas & Investimentos', dailyTarget: 50, monthlyTarget: 1000, activeDays: [1, 2, 3, 4, 5], color: '#ec4899', icon: 'fa-piggy-bank' }
         ];
 
+        /**
+         * Retorna a data atual do sistema no formato ISO "AAAA-MM-DD".
+         * @returns {string} Data formatada (ex: "2026-10-29").
+         */
         function getTodayString() {
             const today = new Date();
             const yyyy = today.getFullYear();
@@ -854,6 +858,11 @@
             return `${yyyy}-${mm}-${dd}`;
         }
 
+        /**
+         * Converte um objeto Date do JavaScript em texto no formato ISO "AAAA-MM-DD".
+         * @param {Date} d - Objeto de data a ser formatado.
+         * @returns {string} Data formatada em ISO.
+         */
         function formatDateToISO(d) {
             const yyyy = d.getFullYear();
             const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -861,10 +870,20 @@
             return `${yyyy}-${mm}-${dd}`;
         }
 
+        /**
+         * Formata um valor numérico para o padrão de moeda do Brasil (R$).
+         * @param {number} val - Valor a ser formatado.
+         * @returns {string} Valor formatado em moeda (ex: "R$ 1.500,00").
+         */
         function formatCurrency(val) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
         }
 
+        /**
+         * Exibe uma notificação temporária no canto inferior da tela (Toast).
+         * @param {string} message - Mensagem a ser exibida.
+         * @param {string} type - Tipo de alerta ('success', 'error', 'info').
+         */
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-xl text-white font-medium text-xs transition-all transform duration-300 flex items-center gap-2 ${
@@ -878,6 +897,7 @@
             }, 2500);
         }
 
+        // Estado Global da Aplicação
         const appState = {
             currentDate: getTodayString(),
             activeFilter: 'all', 
@@ -896,26 +916,41 @@
             googleScriptUrl: localStorage.getItem('caixas_google_script_url') || ''
         };
 
+        /**
+         * Persiste a lista de caixinhas cadastradas no localStorage e aciona sincronização na nuvem.
+         */
         function saveBoxesToStorage() {
             localStorage.setItem('caixas_boxes', JSON.stringify(appState.boxes));
             syncToGoogleSheet();
         }
 
+        /**
+         * Persiste os registros de alocações diárias no localStorage e sincroniza com a nuvem.
+         */
         function saveAllocationsToStorage() {
             localStorage.setItem('caixas_allocations', JSON.stringify(appState.allocations));
             syncToGoogleSheet();
         }
 
+        /**
+         * Persiste a lista de categorias no localStorage e sincroniza com a nuvem.
+         */
         function saveCategoriesToStorage() {
             localStorage.setItem('caixas_categories', JSON.stringify(appState.categories));
             syncToGoogleSheet();
         }
 
+        /**
+         * Persiste o histórico de retiradas e saídas no localStorage e sincroniza com a nuvem.
+         */
         function saveWithdrawalsToStorage() {
             localStorage.setItem('caixas_withdrawals', JSON.stringify(appState.withdrawals));
             syncToGoogleSheet();
         }
 
+        /**
+         * Carrega do localStorage todos os dados salvos anteriormente (caixinhas, alocações e retiradas).
+         */
         function loadLocalStorage() {
             const savedBoxes = localStorage.getItem('caixas_boxes');
             if (savedBoxes) {
@@ -935,6 +970,9 @@
             }
         }
 
+        /**
+         * Envia os dados atuais via Webhook/POST para o Google Sheets (caso a URL de integração esteja configurada).
+         */
         function syncToGoogleSheet() {
             if (!appState.googleScriptUrl) return;
             try {
@@ -956,6 +994,11 @@
             }
         }
 
+        /**
+         * Retorna a lista de caixinhas ativas para o dia da semana correspondente à data fornecida.
+         * @param {string} dateStr - Data no formato ISO "AAAA-MM-DD".
+         * @returns {Array} Caixinhas ativas no dia.
+         */
         function getActiveBoxesForDate(dateStr) {
             const parts = dateStr.split('-');
             const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -963,6 +1006,11 @@
             return appState.boxes.filter(b => (b.activeDays || []).includes(dayOfWeek));
         }
 
+        /**
+         * Calcula os saldos acumulados globais (todo o histórico) de cada caixinha e da empresa inteira.
+         * Desconta todas as retiradas de seus respectivos saldos de espécie e banco/PIX.
+         * @returns {Object} Totais detalhados por caixinha e globais.
+         */
         function calculateBoxBalances() {
             const result = { perBox: {}, totalCash: 0, totalBank: 0, totalWithdrawals: 0, globalNet: 0 };
 
@@ -1011,6 +1059,11 @@
             return result;
         }
 
+        /**
+         * Calcula os totais acumulados exclusivamente no mês da data especificada.
+         * @param {string} dateStr - Data no formato ISO "AAAA-MM-DD".
+         * @returns {Object} Totais detalhados do mês por caixinha e no geral.
+         */
         function calculateMonthlyTotals(dateStr) {
             const yearMonth = dateStr.slice(0, 7); 
             const result = { perBox: {}, monthCash: 0, monthBank: 0, monthWithdrawals: 0, monthNet: 0 };
@@ -1064,6 +1117,9 @@
             return result;
         }
 
+        /**
+         * Renderiza os cartões de resumo e a barra de progresso do topo da tela (Meta Diária, Pendente e Porcentagem Concluída).
+         */
         function renderKPIs() {
             const brandTitle = document.getElementById('brandTitle');
             const companySubtextEl = document.getElementById('companySubtext');
@@ -1137,12 +1193,18 @@
             }
         }
 
+        /**
+         * Inicializa o valor do campo de escolha de data no HTML com a data selecionada no estado da aplicação.
+         */
         function initDateSelector() {
             const input = document.getElementById('selectedDate');
             if (input) input.value = appState.currentDate;
             updateDayNameLabel();
         }
 
+        /**
+         * Atualiza o texto do dia da semana (ex: "quinta-feira, 29 de outubro de 2026") abaixo do seletor de data.
+         */
         function updateDayNameLabel() {
             const label = document.getElementById('selectedDayName');
             if (!label) return;
@@ -1151,6 +1213,9 @@
             label.innerText = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         }
 
+        /**
+         * Atualiza os elementos visuais do modal do Google Sync com as informações do usuário conectado/desconectado.
+         */
         function updateGoogleUI() {
             const nameEl = document.getElementById('googleUserName');
             const emailEl = document.getElementById('googleUserEmail');
@@ -1176,6 +1241,9 @@
             }
         }
 
+        /**
+         * Renderiza a lista de categorias no modal de gerenciamento de categorias.
+         */
         function renderCategoryManageList() {
             const list = document.getElementById('categoryManageList');
             if (!list) return;
@@ -1198,6 +1266,9 @@
             list.innerHTML = html;
         }
 
+        /**
+         * Preenche o elemento `<select>` do formulário de criação/edição de caixinhas com as categorias ordenadas.
+         */
         function populateCategorySelect() {
             const select = document.getElementById('boxCategorySelect');
             if (!select) return;
@@ -1217,7 +1288,11 @@
             select.appendChild(customOpt);
         }
 
-        // BINDINGS GLOBAIS NA WINDOW
+        // BINDINGS GLOBAIS NA WINDOW (Permite acionar chamadas diretamente via HTML onClick/onChange)
+
+        /**
+         * Alterna a visibilidade do campo de texto para criação de uma nova categoria personalizada no formulário.
+         */
         window.onCategorySelectChange = function() {
             const val = document.getElementById('boxCategorySelect').value;
             const customInput = document.getElementById('boxCategoryCustom');
@@ -1228,15 +1303,25 @@
             }
         };
 
+        /**
+         * Abre o modal de gerenciamento de categorias de despesas.
+         */
         window.openCategoryManageModal = function() {
             renderCategoryManageList();
             document.getElementById('categoryManageModal').classList.remove('hidden');
         };
 
+        /**
+         * Fecha o modal de gerenciamento de categorias.
+         */
         window.closeCategoryManageModal = function() {
             document.getElementById('categoryManageModal').classList.add('hidden');
         };
 
+        /**
+         * Adiciona uma nova categoria de despesas personalizada enviada pelo formulário.
+         * @param {Event} e - Evento de submit do formulário.
+         */
         window.addCustomCategory = function(e) {
             e.preventDefault();
             const input = document.getElementById('newCategoryNameInput');
@@ -1258,6 +1343,10 @@
             showToast('Nova categoria cadastrada com sucesso!');
         };
 
+        /**
+         * Exclui uma categoria de despesas personalizada da lista da aplicação.
+         * @param {string} catName - Nome da categoria a ser excluída.
+         */
         window.deleteCategory = function(catName) {
             if (confirm(`Excluir a categoria "${catName}"?`)) {
                 appState.categories = appState.categories.filter(c => c !== catName);
@@ -1269,6 +1358,9 @@
             }
         };
 
+        /**
+         * Alterna o tema da aplicação entre Modo Claro e Modo Escuro (Dark Mode).
+         */
         window.toggleDarkMode = function() {
             const htmlEl = document.documentElement;
             htmlEl.classList.toggle('dark');
@@ -1276,6 +1368,10 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         };
 
+        /**
+         * Abre o modal para registrar uma entrada/depósito de valor em uma caixinha.
+         * @param {string|null} targetBoxId - ID opcional da caixinha já pré-selecionada.
+         */
         window.openDepositModal = function(targetBoxId = null) {
             if (appState.boxes.length === 0) {
                 showToast('Cadastre uma caixinha antes de realizar entradas.', 'error');
@@ -1305,11 +1401,18 @@
             if (depModal) depModal.classList.remove('hidden');
         };
 
+        /**
+         * Fecha o modal de depósito de valores.
+         */
         window.closeDepositModal = function() {
             const depModal = document.getElementById('depositModal');
             if (depModal) depModal.classList.add('hidden');
         };
 
+        /**
+         * Processa e salva o formulário de depósito/entrada de valor na caixinha especificada.
+         * @param {Event} e - Evento de submit do formulário.
+         */
         window.saveDeposit = function(e) {
             e.preventDefault();
 
@@ -1348,6 +1451,9 @@
             showToast('Entrada/Depósito registrado com sucesso!');
         };
 
+        /**
+         * Abre o painel gerencial trazendo indicadores de movimentação diária, mês e saldo histórico acumulado.
+         */
         window.openManagementModal = function() {
             const mData = calculateMonthlyTotals(appState.currentDate);
             const gData = calculateBoxBalances();
@@ -1408,10 +1514,17 @@
             document.getElementById('managementModal').classList.remove('hidden');
         };
 
+        /**
+         * Fecha o modal do painel gerencial.
+         */
         window.closeManagementModal = function() {
             document.getElementById('managementModal').classList.add('hidden');
         };
 
+        /**
+         * Abre o modal de registro de retirada/saída de valores de uma caixinha.
+         * @param {string|null} targetBoxId - ID opcional da caixinha a ter valores retirados.
+         */
         window.openWithdrawalModal = function(targetBoxId = null) {
             if (appState.boxes.length === 0) {
                 showToast('Cadastre uma caixinha antes de realizar retiradas.', 'error');
@@ -1442,11 +1555,17 @@
             if (wModal) wModal.classList.remove('hidden');
         };
 
+        /**
+         * Fecha o modal de registro de retiradas.
+         */
         window.closeWithdrawalModal = function() {
             const wModal = document.getElementById('withdrawalModal');
             if (wModal) wModal.classList.add('hidden');
         };
 
+        /**
+         * Atualiza os indicadores de saldo disponível em dinheiro/banco no modal de retirada conforme a caixinha selecionada.
+         */
         window.updateWithdrawalBalanceInfo = function() {
             const boxSelect = document.getElementById('withdrawalBoxId');
             const container = document.getElementById('withdrawalBalanceInfo');
@@ -1477,6 +1596,10 @@
             `;
         };
 
+        /**
+         * Processa e salva uma retirada de valor no histórico do sistema.
+         * @param {Event} e - Evento de submit do formulário.
+         */
         window.saveWithdrawal = function(e) {
             e.preventDefault();
             const boxId = document.getElementById('withdrawalBoxId').value;
@@ -1510,6 +1633,10 @@
             showToast('Retirada registrada com sucesso!');
         };
 
+        /**
+         * Exclui/estorna um registro de retirada do extrato histórico pelo seu ID.
+         * @param {string} id - Identificador único da retirada.
+         */
         window.deleteWithdrawal = function(id) {
             if (confirm('Deseja estornar/excluir esta retirada?')) {
                 appState.withdrawals = appState.withdrawals.filter(w => w.id !== id);
@@ -1519,6 +1646,10 @@
             }
         };
 
+        /**
+         * Alterna a exibição entre as abas principais ('daily', 'boxes', 'monthly', 'withdrawals').
+         * @param {string} tabName - Nome da aba a ser ativada.
+         */
         window.switchTab = function(tabName) {
             const tabs = ['daily', 'boxes', 'monthly', 'withdrawals'];
             tabs.forEach(t => {
@@ -1545,6 +1676,9 @@
             if (tabName === 'withdrawals') window.renderWithdrawalsTable();
         };
 
+        /**
+         * Abre o modal de personalização dos dados e logo da empresa.
+         */
         window.openCompanyModal = function() {
             document.getElementById('companyNameInput').value = appState.companyName || '';
             document.getElementById('companySubtextInput').value = appState.companySubtext || 'Método de Alocação para Empresas';
@@ -1552,10 +1686,17 @@
             document.getElementById('companyModal').classList.remove('hidden');
         };
 
+        /**
+         * Fecha o modal de configuração da empresa.
+         */
         window.closeCompanyModal = function() {
             document.getElementById('companyModal').classList.add('hidden');
         };
 
+        /**
+         * Converte e armazena a imagem da logo enviada pelo usuário (.jpg/.png) em formato Base64.
+         * @param {Event} event - Evento de mudança de arquivo do input file.
+         */
         window.handleLogoFileUpload = function(event) {
             const file = event.target.files[0];
             if (file) {
@@ -1573,6 +1714,9 @@
             }
         };
 
+        /**
+         * Remove a imagem de logo da empresa cadastrada no sistema.
+         */
         window.removeCompanyLogo = function() {
             appState.companyLogo = '';
             localStorage.removeItem('caixas_company_logo');
@@ -1581,6 +1725,10 @@
             showToast('Logo da empresa removida.');
         };
 
+        /**
+         * Salva as configurações de nome, subtítulo e logo da empresa no localStorage.
+         * @param {Event} e - Evento de submit do formulário.
+         */
         window.saveCompanySettings = function(e) {
             e.preventDefault();
             const nameVal = document.getElementById('companyNameInput').value.trim();
@@ -1600,15 +1748,24 @@
             showToast('Dados e logo da empresa salvos com sucesso!');
         };
 
+        /**
+         * Abre o modal de sincronização da conta Google.
+         */
         window.openGoogleModal = function() {
             updateGoogleUI();
             document.getElementById('googleModal').classList.remove('hidden');
         };
 
+        /**
+         * Fecha o modal do Google Sync.
+         */
         window.closeGoogleModal = function() {
             document.getElementById('googleModal').classList.add('hidden');
         };
 
+        /**
+         * Vincula um e-mail informado pelo usuário para sincronização entre dispositivos.
+         */
         window.loginWithEmail = function() {
             const emailInput = document.getElementById('googleEmailInput');
             const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
@@ -1628,6 +1785,9 @@
             closeGoogleModal();
         };
 
+        /**
+         * Desconecta a conta vinculada e encerra a sincronização na nuvem.
+         */
         window.logoutGoogle = function() {
             if (confirm("Deseja desconectar esta conta?")) {
                 appState.googleUser = null;
@@ -1638,14 +1798,23 @@
             }
         };
 
+        /**
+         * Abre o modal de Backup e Restauração de dados.
+         */
         window.openBackupModal = function() {
             document.getElementById('backupModal').classList.remove('hidden');
         };
 
+        /**
+         * Fecha o modal de Backup.
+         */
         window.closeBackupModal = function() {
             document.getElementById('backupModal').classList.add('hidden');
         };
 
+        /**
+         * Gera e faz o download de um arquivo .json contendo o backup completo de todos os dados do sistema.
+         */
         window.exportJSON = function() {
             try {
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
@@ -1670,6 +1839,10 @@
             }
         };
 
+        /**
+         * Importa e restaura os dados de caixinhas, alocações e histórico a partir de um arquivo .json fornecido.
+         * @param {Event} event - Evento de alteração do input file.
+         */
         window.importJSON = function(event) {
             const file = event.target ? event.target.files[0] : null;
             if (!file) return;
@@ -1702,6 +1875,9 @@
             fileReader.readAsText(file);
         };
 
+        /**
+         * Restaura as caixinhas e categorias para o estado inicial demonstrativo padrão.
+         */
         window.resetToDefaultData = function() {
             if (confirm('Atenção: Isso irá substituir todas as suas caixinhas pelos dados demonstrativos padrão. Deseja prosseguir?')) {
                 appState.boxes = DEFAULT_BOXES;
@@ -1720,6 +1896,10 @@
             }
         };
 
+        /**
+         * Avança ou retrocede a data selecionada na aplicação pelo número de dias informado.
+         * @param {number} offset - Número de dias a somar ou subtrair (ex: -1 para ontem, +1 para amanhã).
+         */
         window.changeDate = function(offset) {
             const parts = appState.currentDate.split('-');
             const d = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -1729,6 +1909,9 @@
             window.renderApp();
         };
 
+        /**
+         * Atualiza a data da aplicação quando o usuário escolhe uma nova data no campo `<input type="date">`.
+         */
         window.onDateSelectChange = function() {
             const input = document.getElementById('selectedDate');
             if (input && input.value) {
@@ -1738,23 +1921,38 @@
             }
         };
 
+        /**
+         * Reposiciona o seletor de data para a data atual (Hoje).
+         */
         window.setDateToToday = function() {
             appState.currentDate = getTodayString();
             initDateSelector();
             window.renderApp();
         };
 
+        /**
+         * Filtra os cards da aba Alocação Diária pelo status da meta ('all', 'completed', 'pending').
+         * @param {string} status - Filtro de meta escolhido.
+         */
         window.filterDailyCards = function(status) {
             appState.activeFilter = status;
             window.renderDailyCards();
         };
 
+        /**
+         * Filtra os cards de caixinhas por uma categoria específica ou exibe todas ('all').
+         * @param {string} cat - Categoria selecionada.
+         */
         window.filterCategory = function(cat) {
             appState.selectedCategoryFilter = cat;
             window.renderCategoryFilterBar();
             window.renderDailyCards();
         };
 
+        /**
+         * Atualiza o estado da busca e filtra as caixinhas conforme o texto digitado na lupa de pesquisa.
+         * @param {string} val - Texto pesquisado.
+         */
         window.onBoxSearchInput = function(val) {
             appState.searchQuery = (val || '').toLowerCase().trim();
             const clearBtn = document.getElementById('clearSearchBtn');
@@ -1771,12 +1969,19 @@
             }
         };
 
+        /**
+         * Limpa o campo de busca de caixinhas e restaura a listagem completa.
+         */
         window.clearBoxSearch = function() {
             const input = document.getElementById('boxSearchInput');
             if (input) input.value = '';
             window.onBoxSearchInput('');
         };
 
+        /**
+         * Altera o critério de ordenação das caixinhas ('category', 'creation', 'alpha').
+         * @param {string} order - Tipo de ordenação.
+         */
         window.changeBoxSortOrder = function(order) {
             appState.sortOrder = order;
             window.renderDailyCards();
@@ -1785,6 +1990,10 @@
             }
         };
 
+        /**
+         * Marca ou desmarca a meta de todas as caixinhas ativas na data selecionada.
+         * @param {boolean} shouldAllocate - Se `true`, marca todas como atingidas; se `false`, desmarca.
+         */
         window.markAllToday = function(shouldAllocate) {
             const activeBoxes = getActiveBoxesForDate(appState.currentDate);
             if (!appState.allocations[appState.currentDate]) {
@@ -1805,6 +2014,10 @@
             showToast(shouldAllocate ? 'Todas as caixinhas ativas foram marcadas como alocadas!' : 'Valores do dia desmarcados.');
         };
 
+        /**
+         * Alterna individualmente o status de alocado de uma caixinha específica no dia.
+         * @param {string} boxId - ID da caixinha.
+         */
         window.toggleAllocation = function(boxId) {
             if (!appState.allocations[appState.currentDate]) {
                 appState.allocations[appState.currentDate] = {};
@@ -1823,6 +2036,12 @@
             window.renderApp();
         };
 
+        /**
+         * Atualiza os valores alocados em dinheiro ou banco/PIX para uma caixinha no dia vigente.
+         * @param {string} boxId - ID da caixinha.
+         * @param {number|null} cashVal - Novo valor em dinheiro ou null se mantiver.
+         * @param {number|null} bankVal - Novo valor em banco/PIX ou null se mantiver.
+         */
         window.updateAllocationAmounts = function(boxId, cashVal, bankVal) {
             if (!appState.allocations[appState.currentDate]) {
                 appState.allocations[appState.currentDate] = {};
@@ -1844,6 +2063,10 @@
             window.renderApp();
         };
 
+        /**
+         * Abre o modal de criação de uma nova caixinha ou edição de uma caixinha existente.
+         * @param {string|null} boxId - ID da caixinha a ser editada ou null para criar uma nova.
+         */
         window.openBoxModal = function(boxId = null) {
             populateCategorySelect();
             const modal = document.getElementById('boxModal');
@@ -1891,12 +2114,19 @@
             modal.classList.remove('hidden');
         };
 
+        /**
+         * Fecha o modal de cadastro/edição de caixinha.
+         */
         window.closeBoxModal = function() {
             document.getElementById('boxModal').classList.add('hidden');
         };
 
+        /**
+         * Processa o envio do formulário, validando os campos e gravando a caixinha criada ou alterada.
+         * @param {Event} e - Evento de submit do formulário.
+         */
         window.saveBox = function(e) {
-            e.preventDefault();
+            if (e && e.preventDefault) e.preventDefault();
             
             try {
                 const idEl = document.getElementById('boxId');
@@ -1925,6 +2155,8 @@
                         saveCategoriesToStorage();
                         populateCategorySelect();
                     }
+                } else if (!category) {
+                    category = '🏢 Custos Fixos da Empresa';
                 }
 
                 const activeDays = [];
@@ -1937,17 +2169,17 @@
 
                 if (!name) {
                     showToast('Informe o nome da caixinha!', 'error');
-                    return;
+                    return false;
                 }
 
                 if (dailyTarget <= 0) {
                     showToast('A meta diária deve ser maior que zero!', 'error');
-                    return;
+                    return false;
                 }
 
                 if (activeDays.length === 0) {
                     showToast('Selecione pelo menos um dia ativo na semana!', 'error');
-                    return;
+                    return false;
                 }
 
                 if (id) {
@@ -1972,16 +2204,26 @@
                 window.closeBoxModal();
                 window.renderApp();
                 showToast('Caixinha salva com sucesso!');
+                return false;
             } catch (err) {
                 console.error("Erro ao salvar caixinha:", err);
                 showToast('Erro ao salvar caixinha. Verifique os dados inseridos.', 'error');
+                return false;
             }
         };
 
+        /**
+         * Abre o modal de edição para uma caixinha informada.
+         * @param {string} id - ID da caixinha.
+         */
         window.editBox = function(id) {
             window.openBoxModal(id);
         };
 
+        /**
+         * Exclui permanentemente uma caixinha da lista do sistema.
+         * @param {string} id - ID da caixinha a ser removida.
+         */
         window.deleteBox = function(id) {
             if (confirm('Tem certeza que deseja excluir esta caixinha?')) {
                 appState.boxes = appState.boxes.filter(b => b.id !== id);
@@ -1991,6 +2233,11 @@
             }
         };
 
+        /**
+         * Retorna a lista de caixinhas reordenada de acordo com o modo de ordenação configurado em `appState.sortOrder`.
+         * @param {Array} boxesList - Array de caixinhas.
+         * @returns {Array} Lista ordenada de caixinhas.
+         */
         function getSortedBoxes(boxesList) {
             const list = [...boxesList];
             if (appState.sortOrder === 'alpha') {
@@ -2001,6 +2248,9 @@
             return list;
         }
 
+        /**
+         * Renderiza a barra com os botões de filtro rápido de categoria no topo da aba de Alocação Diária.
+         */
         window.renderCategoryFilterBar = function() {
             const container = document.getElementById('categoryFilterContainer');
             if (!container) return;
@@ -2032,6 +2282,9 @@
             container.innerHTML = html;
         };
 
+        /**
+         * Renderiza a lista de cards de caixinhas na aba de Alocação Diária, aplicando busca, filtros, sanfona e ordenação.
+         */
         window.renderDailyCards = function() {
             const container = document.getElementById('dailyCardsContainer');
             if (!container) return;
@@ -2205,6 +2458,10 @@
             container.innerHTML = html;
         };
 
+        /**
+         * Alterna a expansão e o recolhimento (modo sanfona) da área de detalhes de um card de caixinha.
+         * @param {string} boxId - ID da caixinha a ser expandida/recolhida.
+         */
         window.toggleBoxDetails = function(boxId) {
             const detailsEl = document.getElementById(`details-box-${boxId}`);
             const chevronEl = document.getElementById(`chevron-box-${boxId}`);
@@ -2220,6 +2477,9 @@
             }
         };
 
+        /**
+         * Renderiza a listagem completa da inventário de caixinhas na aba "Minhas Caixinhas".
+         */
         window.renderBoxesList = function() {
             const container = document.getElementById('boxesListContainer');
             if (!container) return;
@@ -2325,6 +2585,9 @@
             container.innerHTML = html;
         };
 
+        /**
+         * Renderiza o gráfico de colunas (Chart.js) e o detalhamento percentual do mês na aba "Resumo por Período".
+         */
         window.renderMonthlySummary = function() {
             const labelEl = document.getElementById('monthlyPeriodLabel');
             if (labelEl) {
@@ -2399,6 +2662,9 @@
             }
         };
 
+        /**
+         * Renderiza a tabela do extrato de retiradas e débitos registrados na aba "Histórico de Retiradas".
+         */
         window.renderWithdrawalsTable = function() {
             const body = document.getElementById('withdrawalsTableBody');
             const badge = document.getElementById('withdrawalCountBadge');
@@ -2447,13 +2713,16 @@
             body.innerHTML = html;
         };
 
+        /**
+         * Atualiza e renderiza todos os componentes principais da aplicação (KPIs, barra de categorias e cards diários).
+         */
         window.renderApp = function() {
             renderKPIs();
             window.renderCategoryFilterBar();
             window.renderDailyCards();
         };
 
-        // Inicialização do aplicativo
+        // Inicialização do aplicativo ao carregar a página
         window.addEventListener('load', () => {
             if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
