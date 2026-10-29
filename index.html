@@ -111,6 +111,18 @@
                         <span>Registrar Retirada</span>
                     </button>
 
+                    <!-- Botão Registrar Entrada (NOVO) -->
+                    <button onclick="openDepositModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        <span>Registrar Entrada</span>
+                    </button>
+
+                    <!-- Botão Dados Gerenciais -->
+                    <button onclick="openManagementModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-line text-amber-600 dark:text-amber-400"></i>
+                        <span>Dados Gerenciais</span>
+                    </button>
+
                     <!-- Botão Backup -->
                     <button onclick="openBackupModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-database"></i>
@@ -158,42 +170,15 @@
             </div>
         </section>
 
-        <!-- KPI Cards / Visão Geral Diária -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- KPI Cards Simplificados (Apenas Meta e Pendente) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700">
                 <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Meta Diária</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider">Meta Diária Prevista</span>
                     <i class="fa-solid fa-bullseye text-blue-500"></i>
                 </div>
                 <div id="kpiDailyTarget" class="text-xl font-bold text-slate-900 dark:text-white">R$ 0,00</div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Previsto para hoje</p>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700">
-                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Em Dinheiro</span>
-                    <i class="fa-solid fa-money-bill-wave text-emerald-500"></i>
-                </div>
-                <div id="kpiAllocatedCash" class="text-xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Espécie hoje</p>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700">
-                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Em C/C (PIX)</span>
-                    <i class="fa-solid fa-building-columns text-cyan-500"></i>
-                </div>
-                <div id="kpiAllocatedBank" class="text-xl font-bold text-cyan-600 dark:text-cyan-400">R$ 0,00</div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Depósito / Banco hoje</p>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50/40 to-cyan-50/40 dark:from-emerald-950/20 dark:to-cyan-950/20">
-                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Total Hoje</span>
-                    <i class="fa-solid fa-vault text-emerald-600"></i>
-                </div>
-                <div id="kpiDailyAllocated" class="text-xl font-bold text-slate-900 dark:text-white">R$ 0,00</div>
-                <p id="kpiAllocatedSubtext" class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">0% da meta</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Soma das caixinhas ativas hoje</p>
             </div>
 
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700">
@@ -203,49 +188,6 @@
                 </div>
                 <div id="kpiDailyPending" class="text-xl font-bold text-amber-600 dark:text-amber-400">R$ 0,00</div>
                 <p id="kpiPendingCount" class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">0 caixinhas restantes</p>
-            </div>
-        </section>
-
-        <!-- KPI Cards de Acumulados Ampliados -->
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
-                            <i class="fa-solid fa-calendar-check text-lg"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Acumulado Líquido do Mês</span>
-                            <p class="text-xs text-slate-400">Total alocado no mês descontando retiradas realizadas</p>
-                        </div>
-                    </div>
-                    <div id="kpiMonthlyTotal" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">R$ 0,00</div>
-                </div>
-                <div class="flex justify-between items-center text-xs pt-2 border-t border-slate-100 dark:border-slate-700/60 text-slate-500 dark:text-slate-400">
-                    <span><i class="fa-solid fa-money-bill-wave text-emerald-500 mr-1"></i> Dinheiro: <strong id="kpiMonthlyCash" class="text-slate-700 dark:text-slate-200">R$ 0,00</strong></span>
-                    <span><i class="fa-solid fa-building-columns text-cyan-500 mr-1"></i> Banco: <strong id="kpiMonthlyBank" class="text-slate-700 dark:text-slate-200">R$ 0,00</strong></span>
-                    <span><i class="fa-solid fa-arrow-down-short-wide text-rose-500 mr-1"></i> Retiradas: <strong id="kpiMonthlyWithdrawals" class="text-rose-600 dark:text-rose-400">R$ 0,00</strong></span>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-slate-900/5 to-emerald-900/5 dark:from-slate-800 dark:to-emerald-950/30 flex flex-col justify-between">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                            <i class="fa-solid fa-piggy-bank text-lg"></i>
-                        </div>
-                        <div>
-                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Acumulado Histórico Global</span>
-                            <p class="text-xs text-slate-400">Saldo acumulado de todos os meses desde a criação</p>
-                        </div>
-                    </div>
-                    <div id="kpiAllTimeTotal" class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">R$ 0,00</div>
-                </div>
-                <div class="flex justify-between items-center text-xs pt-2 border-t border-slate-100 dark:border-slate-700/60 text-slate-500 dark:text-slate-400">
-                    <span><i class="fa-solid fa-money-bill-wave text-emerald-500 mr-1"></i> Dinheiro: <strong id="kpiAllTimeCash" class="text-slate-700 dark:text-slate-200">R$ 0,00</strong></span>
-                    <span><i class="fa-solid fa-building-columns text-cyan-500 mr-1"></i> Banco: <strong id="kpiAllTimeBank" class="text-slate-700 dark:text-slate-200">R$ 0,00</strong></span>
-                    <span><i class="fa-solid fa-hand-holding-dollar text-rose-500 mr-1"></i> Retiradas Totais: <strong id="kpiAllTimeWithdrawals" class="text-rose-600 dark:text-rose-400">R$ 0,00</strong></span>
-                </div>
             </div>
         </section>
 
@@ -283,6 +225,15 @@
         <!-- ABA 1: LISTA DIÁRIA DE ALOCAÇÕES -->
         <section id="viewDaily" class="space-y-4">
             <div class="flex flex-col space-y-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                <!-- Campo de Busca / Lupa (NOVO) -->
+                <div class="relative w-full">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="boxSearchInput" oninput="onBoxSearchInput(this.value)" placeholder="Pesquisar caixinha por nome ou tipo de despesa..." class="w-full pl-10 pr-10 py-2 text-xs bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    <button id="clearSearchBtn" onclick="clearBoxSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
                 <!-- Filtro por Meta / Status -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div class="flex items-center gap-2 flex-wrap">
@@ -296,213 +247,156 @@
                         <button onclick="filterDailyCards('pending')" id="filterPending" class="px-2.5 py-1 text-xs rounded-lg font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1">
                             <i class="fa-solid fa-circle-xmark text-amber-500"></i> Metas Não Atingidas
                         </button>
+
+                        <!-- Botão de Ordenação (NOVO) -->
+                        <div class="relative inline-block text-left ml-auto sm:ml-2">
+                            <select id="sortBoxesSelect" onchange="changeBoxSortOrder(this.value)" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 focus:outline-none cursor-pointer">
+                                <option value="creation">📅 Ordem de Criação</option>
+                                <option value="alpha">🔤 Ordem Alfabética (A-Z)</option>
+                                <option value="category">🏷️ Por Categoria</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="markAllToday(true)" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900 rounded-lg transition border border-emerald-200 dark:border-emerald-800">
-                            <i class="fa-solid fa-check-double mr-1"></i> Marcar Todos
-                        </button>
-                        <button onclick="markAllToday(false)" class="px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition">
-                            Limpar Dia
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Filtro por Tipo de Despesa / Categoria -->
-                <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center gap-2 overflow-x-auto pb-1" id="categoryFilterContainer">
+                    <button onclick="markAllToday(true)" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900 rounded-lg transition border border-emerald-200 dark:border-emerald-800">
+                        <i class="fa-solid fa-check-double mr-1"></i> Marcar Todos
+                    </button>
+                    <button onclick="markAllToday(false)" class="px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition">
+                        Limpar Dia
+                    </button>
                 </div>
             </div>
+            
+            <!-- Recipiente da barra de categorias -->
+            <div id="categoryFilterContainer" class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar"></div>
 
-            <!-- Agrupamento por Categoria e Caixinhas -->
-            <div id="dailyCardsContainer" class="space-y-6">
-            </div>
+            <!-- Cards de Alocação Diária -->
+            <div id="dailyCardsContainer" class="space-y-6"></div>
         </section>
 
-        <!-- ABA 2: GERENCIAMENTO DE CAIXINHAS -->
+        <!-- ABA 2: MINHAS CAIXINHAS (INVENTÁRIO) -->
         <section id="viewBoxes" class="hidden space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                <div>
-                    <h3 class="font-bold text-slate-800 dark:text-white">Gerenciamento por Tipo de Despesa e Caixinhas</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Acompanhe saldos acumulados e metas separadamente por grupo e caixinha</p>
-                </div>
-                <button onclick="openBoxModal()" class="px-3.5 py-2 text-xs font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 shadow transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-plus"></i> Nova Caixinha
-                </button>
-            </div>
-
-            <div id="boxesListContainer" class="space-y-6">
-            </div>
+            <div id="boxesListContainer"></div>
         </section>
 
-        <!-- ABA 3: RESUMO E METAS MENSAL -->
+        <!-- ABA 3: RESUMO POR PERÍODO -->
         <section id="viewMonthly" class="hidden space-y-6">
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-days text-emerald-600"></i>
-                    Acumulado do Mês Atual
-                </h3>
-                <span id="monthlyPeriodLabel" class="text-sm font-semibold text-slate-600 dark:text-slate-300"></span>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-emerald-600"></i>
+                        Acumulado por Caixinha no Mês (<span id="monthlyPeriodLabel"></span>)
+                    </h3>
+                </div>
+                <div class="h-64 relative">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
-                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-4">Progresso por Caixinha neste Mês</h4>
-                    <div class="relative w-full h-72">
-                        <canvas id="monthlyChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
-                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-4">Detalhamento dos Guardados</h4>
-                    <div id="monthlyProgressList" class="space-y-4 overflow-y-auto max-h-80 pr-1 custom-scrollbar">
-                    </div>
-                </div>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Detalhamento dos Valores Guardados no Mês</h4>
+                <div id="monthlyProgressList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
             </div>
         </section>
 
         <!-- ABA 4: HISTÓRICO DE RETIRADAS -->
         <section id="viewWithdrawals" class="hidden space-y-4">
-            <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                <div>
-                    <h3 class="font-bold text-slate-800 dark:text-white">Extrato de Retiradas / Débitos</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Histórico completo de pagamentos e resgates das caixinhas</p>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-rose-500"></i>
+                        Extrato de Retiradas e Débitos
+                    </h3>
                 </div>
-                <button onclick="openWithdrawalModal()" class="px-3.5 py-2 text-xs font-semibold rounded-lg text-white bg-rose-600 hover:bg-rose-700 shadow transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-minus"></i> Nova Retirada
-                </button>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-100 dark:border-slate-700">
+                            <tr>
                                 <th class="p-3.5">Data</th>
                                 <th class="p-3.5">Caixinha</th>
                                 <th class="p-3.5">Origem</th>
-                                <th class="p-3.5">Descrição / Motivo</th>
-                                <th class="p-3.5 text-right">Valor Deduzido</th>
-                                <th class="p-3.5 text-center">Ações</th>
+                                <th class="p-3.5">Descrição</th>
+                                <th class="p-3.5 text-right">Valor</th>
+                                <th class="p-3.5 text-center">Ação</th>
                             </tr>
                         </thead>
-                        <tbody id="withdrawalsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700 text-xs">
-                        </tbody>
+                        <tbody id="withdrawalsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
                     </table>
                 </div>
             </div>
         </section>
+
     </main>
-
-    <!-- Rodapé com Copyrights de Danilo Silvano de Lacerda -->
-    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
-            <div>
-                © 2026 <strong>Caixas Diárias</strong>. Todos os direitos reservados.
-            </div>
-            <div>
-                Desenvolvido por <strong>Danilo Silvano de Lacerda</strong> | <a href="mailto:lilo03br@yahoo.com.br" class="text-emerald-600 hover:underline">lilo03br@yahoo.com.br</a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- MODAL: PERSONALIZAR EMPRESA E LOGO -->
-    <div id="companyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-building text-emerald-600"></i>
-                    Personalizar Empresa & Logo
-                </h3>
-                <button onclick="closeCompanyModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <form onsubmit="saveCompanySettings(event)" class="mt-4 space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nome da Empresa</label>
-                    <input type="text" id="companyNameInput" placeholder="Ex: Minha Empresa Ltda" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Subtítulo / Descrição Curta</label>
-                    <input type="text" id="companySubtextInput" placeholder="Ex: Gestão Financeira Diária" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">URL da Logo da Empresa (ou Upload)</label>
-                    <input type="text" id="companyLogoUrlInput" placeholder="https://exemplo.com/logo.png" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
-                    
-                    <div class="mt-2 flex items-center gap-2">
-                        <label class="px-3 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer border border-slate-300 dark:border-slate-600 transition">
-                            <i class="fa-solid fa-upload mr-1"></i> Carregar Imagem (.jpg / .png)
-                            <input type="file" id="companyLogoFileInput" accept="image/png, image/jpeg, image/jpg" onchange="handleLogoFileUpload(event)" class="hidden">
-                        </label>
-                        <button type="button" onclick="removeCompanyLogo()" class="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition">
-                            Remover Logo
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
-                    <button type="button" onclick="closeCompanyModal()" class="px-4 py-2 font-semibold text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow">Salvar Personalização</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL: GOOGLE CLOUD & SHEETS INTEGRATION -->
-    <div id="googleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-cloud text-emerald-600"></i>
-                    Sincronização na Nuvem
-                </h3>
-                <button onclick="closeGoogleModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="mt-4 space-y-4 text-xs text-slate-600 dark:text-slate-300">
-                <p>Vincule sua **Conta Google** para sincronizar e acessar suas caixinhas e lançamentos em qualquer computador, celular ou tablet.</p>
-
-                <div id="googleUserSection" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 flex flex-col items-center text-center gap-3">
-                    <div id="googleUserAvatar" class="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-600 dark:text-emerald-300 overflow-hidden text-xl font-bold">
-                        <i class="fa-brands fa-google"></i>
-                    </div>
-                    <div>
-                        <p id="googleUserName" class="font-bold text-slate-800 dark:text-white text-sm">Conta Não Conectada</p>
-                        <p id="googleUserEmail" class="text-xs text-slate-400 mt-0.5">Informe seu e-mail para ativar a sincronização</p>
-                    </div>
-
-                    <!-- Formulário Rápido de Sincronização sem erro OAuth -->
-                    <div id="manualSyncForm" class="w-full space-y-2 text-left">
-                        <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Seu E-mail Google (Gmail):</label>
-                        <div class="flex gap-1.5">
-                            <input type="email" id="googleEmailInput" placeholder="seu-email@gmail.com" value="lilomg@gmail.com" class="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                            <button onclick="loginWithEmail()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow text-xs shrink-0 transition">
-                                Conectar
-                            </button>
+                            </div>
+                            <div id="modalDailyAllocated" class="text-lg font-bold text-slate-900 dark:text-white">R$ 0,00</div>
+                            <p id="modalAllocatedSubtext" class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">0% da meta diária</p>
                         </div>
                     </div>
-
-                    <!-- Botão do Google Identity / GIS Nativo (Opcional) -->
-                    <div id="googleSignInButtonContainer" class="hidden mt-1"></div>
-                    
-                    <button id="googleLogoutBtn" onclick="logoutGoogle()" class="hidden px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition border border-rose-200 dark:border-rose-800">
-                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Desconectar Conta
-                    </button>
                 </div>
 
-                <div class="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/50 text-[11px] text-emerald-800 dark:text-emerald-300 flex items-start gap-2">
-                    <i class="fa-solid fa-shield-halved text-emerald-600 text-sm mt-0.5"></i>
-                    <span>Seus dados ficam vinculados ao seu e-mail, mantendo sincronização automática entre todos os seus dispositivos.</span>
-                </div>
+                <!-- Visão de Saldos Acumulados -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Saldos Acumulados</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Card Mês -->
+                        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200 dark:border-slate-600 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="p-2 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase">Acumulado Líquido do Mês</span>
+                                </div>
+                                <div id="modalMonthlyTotal" class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">R$ 0,00</div>
+                            </div>
+                            <div class="space-y-1 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-600">
+                                <div class="flex justify-between">
+                                    <span>Dinheiro no Mês:</span>
+                                    <strong id="modalMonthlyCash" class="text-slate-700 dark:text-slate-200">R$ 0,00</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Banco/PIX no Mês:</span>
+                                    <strong id="modalMonthlyBank" class="text-slate-700 dark:text-slate-200">R$ 0,00</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Retiradas no Mês:</span>
+                                    <strong id="modalMonthlyWithdrawals" class="text-rose-600 dark:text-rose-400">R$ 0,00</strong>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-700">
-                    <button type="button" onclick="closeGoogleModal()" class="px-4 py-2 font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Fechar</button>
+                        <!-- Card Global -->
+                        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200 dark:border-slate-600 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                                        <i class="fa-solid fa-vault"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase">Acumulado Histórico Global</span>
+                                </div>
+                                <div id="modalAllTimeTotal" class="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">R$ 0,00</div>
+                            </div>
+                            <div class="space-y-1 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-600">
+                                <div class="flex justify-between">
+                                    <span>Dinheiro Global:</span>
+                                    <strong id="modalAllTimeCash" class="text-slate-700 dark:text-slate-200">R$ 0,00</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Banco/PIX Global:</span>
+                                    <strong id="modalAllTimeBank" class="text-slate-700 dark:text-slate-200">R$ 0,00</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Retiradas Globais:</span>
+                                    <strong id="modalAllTimeWithdrawals" class="text-rose-600 dark:text-rose-400">R$ 0,00</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="mt-6 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                <button onclick="closeManagementModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Fechar Painel</button>
             </div>
         </div>
     </div>
@@ -624,11 +518,12 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Ícone</label>
                         <select id="boxIcon" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                            <option value="fa-users-gear">👥 Gastos com Funcionários (Equipe)</option>
+                            <option value="fa-user-tie">👔 Pro-labore / Salários</option>
                             <option value="fa-hand-holding-hand">🤝 Empréstimos & Financiamentos</option>
                             <option value="fa-house">🏠 Aluguel / Prédio</option>
                             <option value="fa-bolt">⚡ Luz / Energia</option>
                             <option value="fa-droplet">💧 Água / Saneamento</option>
-                            <option value="fa-user-tie">👔 Pro-labore / Salários</option>
                             <option value="fa-truck-field">🚚 Fornecedores</option>
                             <option value="fa-file-invoice-dollar">📄 Impostos / DAS</option>
                             <option value="fa-piggy-bank">🐷 Reserva de Emergência</option>
@@ -685,64 +580,64 @@
                             <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
                                 <i class="fa-solid fa-building-columns mr-1"></i> Banco / PIX
                             </div>
+    <!-- MODAL: REGISTRAR ENTRADA (NOVO) -->
+    <div id="depositModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus text-emerald-600"></i>
+                    Registrar Entrada / Depósito
+                </h3>
+                <button onclick="closeDepositModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="depositForm" onsubmit="saveDeposit(event)" class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Caixinha de Destino</label>
+                    <select id="depositBoxId" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Forma de Entrada</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="depositDestination" value="cash" checked class="peer hidden">
+                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-money-bill-wave mr-1"></i> Dinheiro
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="depositDestination" value="bank" class="peer hidden">
+                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-building-columns mr-1"></i> Banco / PIX
+                            </div>
                         </label>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor da Retirada (R$)</label>
-                    <input type="number" step="0.01" min="0.01" id="withdrawalAmount" required placeholder="100.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor da Entrada (R$)</label>
+                    <input type="number" step="0.01" min="0.01" id="depositAmount" required placeholder="100.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Data da Retirada</label>
-                    <input type="date" id="withdrawalDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Data do Depósito</label>
+                    <input type="date" id="depositDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Descrição / Finalidade do Pagamento</label>
-                    <input type="text" id="withdrawalNote" required placeholder="Ex: Pagamento do boleto de aluguel" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Origem / Observação</label>
+                    <input type="text" id="depositNote" placeholder="Ex: Aporte extra, rendimento ou reforço da meta" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div class="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
-                    <button type="button" onclick="closeWithdrawalModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow transition">Confirmar Retirada</button>
+                    <button type="button" onclick="closeDepositModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow transition">Confirmar Entrada</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- MODAL: GERENCIAR CATEGORIAS DE GASTOS -->
-    <div id="categoryManageModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-tags text-indigo-600"></i>
-                    Cadastrar Categorias de Gastos
-                </h3>
-                <button onclick="closeCategoryManageModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="mt-4 space-y-4">
-                <form onsubmit="addCustomCategory(event)" class="flex gap-2">
-                    <input type="text" id="newCategoryNameInput" required placeholder="Nova categoria (ex: Viagens, Licenças)..." class="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white">
-                    <button type="submit" class="px-3 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow shrink-0">
-                        <i class="fa-solid fa-plus mr-1"></i> Adicionar
-                    </button>
-                </form>
-
-                <div class="border-t border-slate-100 dark:border-slate-700 pt-3">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Categorias Ativas</h4>
-                    <div id="categoryManageList" class="space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar pr-1">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-5 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-                <button onclick="closeCategoryManageModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Concluído</button>
-            </div>
         </div>
     </div>
 
@@ -764,8 +659,8 @@
             { id: 'box-0', name: 'Empréstimo Bancário / Giro', category: '🤝 Empréstimos & Financiamentos', dailyTarget: 80, activeDays: [1, 2, 3, 4, 5], color: '#f59e0b', icon: 'fa-hand-holding-hand' },
             { id: 'box-1', name: 'Aluguel do Imóvel', category: '🏢 Custos Fixos da Empresa', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#3b82f6', icon: 'fa-house' },
             { id: 'box-2', name: 'Energia & Água', category: '🏢 Custos Fixos da Empresa', dailyTarget: 25, activeDays: [1, 2, 3, 4, 5], color: '#eab308', icon: 'fa-bolt' },
-            { id: 'box-3', name: 'Folha de Pagamento', category: '👥 Gastos com Funcionários', dailyTarget: 150, activeDays: [1, 2, 3, 4, 5], color: '#10b981', icon: 'fa-user-tie' },
-            { id: 'box-4', name: 'Pro-labore Sócios', category: '👤 Gastos Pessoais / Pro-labore', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#06b6d4', icon: 'fa-user' },
+            { id: 'box-3', name: 'Folha de Pagamento', category: '👥 Gastos com Funcionários', dailyTarget: 150, activeDays: [1, 2, 3, 4, 5], color: '#10b981', icon: 'fa-users-gear' },
+            { id: 'box-4', name: 'Pro-labore Sócios', category: '👤 Gastos Pessoais / Pro-labore', dailyTarget: 100, activeDays: [1, 2, 3, 4, 5], color: '#06b6d4', icon: 'fa-user-tie' },
             { id: 'box-5', name: 'Fornecedores Principais', category: '🚚 Fornecedores & Estoque', dailyTarget: 200, activeDays: [1, 2, 3, 4, 5], color: '#8b5cf6', icon: 'fa-truck-field' },
             { id: 'box-6', name: 'Impostos & DAS', category: '📄 Impostos & Taxas', dailyTarget: 40, activeDays: [1, 2, 3, 4, 5], color: '#ef4444', icon: 'fa-file-invoice-dollar' },
             { id: 'box-7', name: 'Reserva de Emergência', category: '🐷 Reservas & Investimentos', dailyTarget: 50, activeDays: [1, 2, 3, 4, 5], color: '#ec4899', icon: 'fa-piggy-bank' }
@@ -807,6 +702,8 @@
             currentDate: getTodayString(),
             activeFilter: 'all', 
             selectedCategoryFilter: 'all', 
+            sortOrder: 'creation', // NOVO: 'creation', 'alpha', 'category'
+            searchQuery: '',
             companyName: localStorage.getItem('caixas_company_name') || '',
             companySubtext: localStorage.getItem('caixas_company_subtext') || 'Método de Alocação para Empresas',
             companyLogo: localStorage.getItem('caixas_company_logo') || '',
@@ -1031,11 +928,20 @@
             const dailyPendingVal = Math.max(0, dailyTargetTotal - totalAllocatedToday);
             const percent = dailyTargetTotal > 0 ? Math.min(100, Math.round((totalAllocatedToday / dailyTargetTotal) * 100)) : 0;
 
-            document.getElementById('kpiDailyTarget').innerText = formatCurrency(dailyTargetTotal);
-            document.getElementById('kpiAllocatedCash').innerText = formatCurrency(allocatedCash);
-            document.getElementById('kpiAllocatedBank').innerText = formatCurrency(allocatedBank);
-            document.getElementById('kpiDailyAllocated').innerText = formatCurrency(totalAllocatedToday);
-            document.getElementById('kpiDailyPending').innerText = formatCurrency(dailyPendingVal);
+            const elTarget = document.getElementById('kpiDailyTarget');
+            if (elTarget) elTarget.innerText = formatCurrency(dailyTargetTotal);
+
+            const elCash = document.getElementById('kpiAllocatedCash');
+            if (elCash) elCash.innerText = formatCurrency(allocatedCash);
+
+            const elBank = document.getElementById('kpiAllocatedBank');
+            if (elBank) elBank.innerText = formatCurrency(allocatedBank);
+
+            const elAllocated = document.getElementById('kpiDailyAllocated');
+            if (elAllocated) elAllocated.innerText = formatCurrency(totalAllocatedToday);
+
+            const elPending = document.getElementById('kpiDailyPending');
+            if (elPending) elPending.innerText = formatCurrency(dailyPendingVal);
 
             const kpiAllocatedSubtext = document.getElementById('kpiAllocatedSubtext');
             if (kpiAllocatedSubtext) kpiAllocatedSubtext.innerText = `${percent}% da meta prevista atempo`;
@@ -1051,15 +957,28 @@
             const mData = calculateMonthlyTotals(appState.currentDate);
             const kpiMonthlyTotal = document.getElementById('kpiMonthlyTotal');
             if (kpiMonthlyTotal) kpiMonthlyTotal.innerText = formatCurrency(mData.monthNet);
-            document.getElementById('kpiMonthlyCash').innerText = formatCurrency(mData.monthCash);
-            document.getElementById('kpiMonthlyBank').innerText = formatCurrency(mData.monthBank);
-            document.getElementById('kpiMonthlyWithdrawals').innerText = formatCurrency(mData.monthWithdrawals);
+
+            const elMCash = document.getElementById('kpiMonthlyCash');
+            if (elMCash) elMCash.innerText = formatCurrency(mData.monthCash);
+
+            const elMBank = document.getElementById('kpiMonthlyBank');
+            if (elMBank) elMBank.innerText = formatCurrency(mData.monthBank);
+
+            const elMWith = document.getElementById('kpiMonthlyWithdrawals');
+            if (elMWith) elMWith.innerText = formatCurrency(mData.monthWithdrawals);
 
             const gData = calculateBoxBalances();
-            document.getElementById('kpiAllTimeTotal').innerText = formatCurrency(gData.globalNet);
-            document.getElementById('kpiAllTimeCash').innerText = formatCurrency(gData.totalCash);
-            document.getElementById('kpiAllTimeBank').innerText = formatCurrency(gData.totalBank);
-            document.getElementById('kpiAllTimeWithdrawals').innerText = formatCurrency(gData.totalWithdrawals);
+            const elAllTimeTotal = document.getElementById('kpiAllTimeTotal');
+            if (elAllTimeTotal) elAllTimeTotal.innerText = formatCurrency(gData.globalNet);
+
+            const elAllTimeCash = document.getElementById('kpiAllTimeCash');
+            if (elAllTimeCash) elAllTimeCash.innerText = formatCurrency(gData.totalCash);
+
+            const elAllTimeBank = document.getElementById('kpiAllTimeBank');
+            if (elAllTimeBank) elAllTimeBank.innerText = formatCurrency(gData.totalBank);
+
+            const elAllTimeWithdrawals = document.getElementById('kpiAllTimeWithdrawals');
+            if (elAllTimeWithdrawals) elAllTimeWithdrawals.innerText = formatCurrency(gData.totalWithdrawals);
 
             const statusEl = document.getElementById('dayWorkStatus');
             if (statusEl) {
@@ -1309,6 +1228,70 @@
 
         window.closeGoogleModal = function() {
             document.getElementById('googleModal').classList.add('hidden');
+        };
+
+        window.openManagementModal = function() {
+            const mData = calculateMonthlyTotals(appState.currentDate);
+            const gData = calculateBoxBalances();
+
+            const dateAllocations = appState.allocations[appState.currentDate] || {};
+            let dailyTargetTotal = 0;
+            let allocatedCash = 0;
+            let allocatedBank = 0;
+
+            getActiveBoxesForDate(appState.currentDate).forEach(box => {
+                dailyTargetTotal += box.dailyTarget;
+                const alloc = dateAllocations[box.id];
+                if (alloc && alloc.allocated) {
+                    allocatedCash += Number(alloc.cashAmount !== undefined ? alloc.cashAmount : box.dailyTarget);
+                    allocatedBank += Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
+                }
+            });
+
+            const totalAllocatedToday = allocatedCash + allocatedBank;
+            const percent = dailyTargetTotal > 0 ? Math.min(100, Math.round((totalAllocatedToday / dailyTargetTotal) * 100)) : 0;
+
+            const modalCash = document.getElementById('modalAllocatedCash');
+            if (modalCash) modalCash.innerText = formatCurrency(allocatedCash);
+
+            const modalBank = document.getElementById('modalAllocatedBank');
+            if (modalBank) modalBank.innerText = formatCurrency(allocatedBank);
+
+            const modalDailyAlloc = document.getElementById('modalDailyAllocated');
+            if (modalDailyAlloc) modalDailyAlloc.innerText = formatCurrency(totalAllocatedToday);
+
+            const modalSubtext = document.getElementById('modalAllocatedSubtext');
+            if (modalSubtext) modalSubtext.innerText = `${percent}% da meta diária`;
+
+            const modalMTotal = document.getElementById('modalMonthlyTotal');
+            if (modalMTotal) modalMTotal.innerText = formatCurrency(mData.monthNet);
+
+            const modalMCash = document.getElementById('modalMonthlyCash');
+            if (modalMCash) modalMCash.innerText = formatCurrency(mData.monthCash);
+
+            const modalMBank = document.getElementById('modalMonthlyBank');
+            if (modalMBank) modalMBank.innerText = formatCurrency(mData.monthBank);
+
+            const modalMWith = document.getElementById('modalMonthlyWithdrawals');
+            if (modalMWith) modalMWith.innerText = formatCurrency(mData.monthWithdrawals);
+
+            const modalGTotal = document.getElementById('modalAllTimeTotal');
+            if (modalGTotal) modalGTotal.innerText = formatCurrency(gData.globalNet);
+
+            const modalGCash = document.getElementById('modalAllTimeCash');
+            if (modalGCash) modalGCash.innerText = formatCurrency(gData.totalCash);
+
+            const modalGBank = document.getElementById('modalAllTimeBank');
+            if (modalGBank) modalGBank.innerText = formatCurrency(gData.totalBank);
+
+            const modalGWith = document.getElementById('modalAllTimeWithdrawals');
+            if (modalGWith) modalGWith.innerText = formatCurrency(gData.totalWithdrawals);
+
+            document.getElementById('managementModal').classList.remove('hidden');
+        };
+
+        window.closeManagementModal = function() {
+            document.getElementById('managementModal').classList.add('hidden');
         };
 
         window.openBackupModal = function() {
@@ -1656,65 +1639,71 @@
             }
 
             const select = document.getElementById('withdrawalBoxId');
-            select.innerHTML = '';
+            if (select) {
+                select.innerHTML = '';
+                appState.boxes.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.innerText = b.name;
+                    select.appendChild(opt);
+                });
+                if (targetBoxId) select.value = targetBoxId;
+            }
 
-            appState.boxes.forEach(b => {
-                const opt = document.createElement('option');
-                opt.value = b.id;
-                opt.innerText = b.name;
-                select.appendChild(opt);
-            });
-
-            if (targetBoxId) select.value = targetBoxId;
-
-            document.getElementById('withdrawalDate').value = appState.currentDate;
-            document.getElementById('withdrawalAmount').value = '';
-            document.getElementById('withdrawalNote').value = '';
+            const wDate = document.getElementById('withdrawalDate');
+            const wAmount = document.getElementById('withdrawalAmount');
+            const wNote = document.getElementById('withdrawalNote');
+            if (wDate) wDate.value = appState.currentDate;
+            if (wAmount) wAmount.value = '';
+            if (wNote) wNote.value = '';
 
             window.updateWithdrawalBalanceInfo();
-            document.getElementById('withdrawalModal').classList.remove('hidden');
+            const wModal = document.getElementById('withdrawalModal');
+            if (wModal) wModal.classList.remove('hidden');
         };
 
         window.closeWithdrawalModal = function() {
-            document.getElementById('withdrawalModal').classList.add('hidden');
+            const wModal = document.getElementById('withdrawalModal');
+            if (wModal) wModal.classList.add('hidden');
         };
 
         window.updateWithdrawalBalanceInfo = function() {
-            const boxId = document.getElementById('withdrawalBoxId').value;
+            const boxSelect = document.getElementById('withdrawalBoxId');
             const container = document.getElementById('withdrawalBalanceInfo');
+            if (!boxSelect || !container) return;
 
+            const boxId = boxSelect.value;
             if (!boxId) {
-                container.innerHTML = '';
+                container.innerHTML = '<p class="text-slate-400">Selecione uma caixinha.</p>';
                 return;
             }
 
-            const allBalances = calculateBoxBalances(boxId);
-            const bData = allBalances.perBox[boxId] || { netCash: 0, netBank: 0, totalNet: 0 };
+            const gData = calculateBoxBalances();
+            const bGlobal = gData.perBox[boxId] || { netCash: 0, netBank: 0, totalNet: 0 };
 
             container.innerHTML = `
-                <div class="flex justify-between font-medium text-slate-600 dark:text-slate-300">
-                    <span><i class="fa-solid fa-money-bill-wave text-emerald-500 mr-1"></i> Saldo em Dinheiro:</span>
-                    <strong class="text-emerald-600 dark:text-emerald-400">${formatCurrency(bData.netCash)}</strong>
+                <div class="flex justify-between font-semibold">
+                    <span>Saldo Dinheiro:</span>
+                    <span class="text-emerald-600 dark:text-emerald-400 font-bold">${formatCurrency(bGlobal.netCash)}</span>
                 </div>
-                <div class="flex justify-between font-medium text-slate-600 dark:text-slate-300">
-                    <span><i class="fa-solid fa-building-columns text-cyan-500 mr-1"></i> Saldo em Banco/PIX:</span>
-                    <strong class="text-cyan-600 dark:text-cyan-400">${formatCurrency(bData.netBank)}</strong>
+                <div class="flex justify-between font-semibold">
+                    <span>Saldo Banco/PIX:</span>
+                    <span class="text-cyan-600 dark:text-cyan-400 font-bold">${formatCurrency(bGlobal.netBank)}</span>
                 </div>
-                <div class="flex justify-between font-bold text-slate-800 dark:text-slate-100 pt-1 border-t border-slate-200 dark:border-slate-600">
-                    <span>Saldo Total Disponível:</span>
-                    <span>${formatCurrency(bData.totalNet)}</span>
+                <div class="flex justify-between font-bold pt-1 border-t border-slate-200 dark:border-slate-600">
+                    <span>Saldo Disponível:</span>
+                    <span class="text-indigo-600 dark:text-indigo-400 font-extrabold">${formatCurrency(bGlobal.totalNet)}</span>
                 </div>
             `;
         };
 
         window.saveWithdrawal = function(e) {
             e.preventDefault();
-
             const boxId = document.getElementById('withdrawalBoxId').value;
             const amount = parseFloat(document.getElementById('withdrawalAmount').value) || 0;
             const date = document.getElementById('withdrawalDate').value;
             const note = document.getElementById('withdrawalNote').value;
-            
+
             const sourceRadios = document.getElementsByName('withdrawalSource');
             let source = 'cash';
             for (let r of sourceRadios) {
@@ -1727,11 +1716,11 @@
             }
 
             appState.withdrawals.push({
-                id: 'w-' + Date.now(),
+                id: 'with-' + Date.now(),
                 boxId,
                 amount,
-                source,
                 date,
+                source,
                 note
             });
 
@@ -1742,39 +1731,106 @@
         };
 
         window.deleteWithdrawal = function(id) {
-            if (confirm('Tem certeza que deseja excluir esta retirada?')) {
+            if (confirm('Deseja estornar/excluir esta retirada?')) {
                 appState.withdrawals = appState.withdrawals.filter(w => w.id !== id);
                 saveWithdrawalsToStorage();
                 renderApp();
-                showToast('Retirada excluída!');
+                showToast('Retirada removida e saldo atualizado!');
             }
         };
 
-        window.toggleDarkMode = function() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        window.onBoxSearchInput = function(val) {
+            appState.searchQuery = (val || '').toLowerCase().trim();
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) {
+                if (appState.searchQuery) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+            }
+            renderDailyCards();
         };
 
-        window.renderCategoryFilterBar = function() {
-            const container = document.getElementById('categoryFilterContainer');
-            if (!container) return;
+        window.clearBoxSearch = function() {
+            const input = document.getElementById('boxSearchInput');
+            if (input) input.value = '';
+            appState.searchQuery = '';
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.classList.add('hidden');
+            renderDailyCards();
+        };
 
-            let html = `
-                <button onclick="filterCategory('all')" class="px-2.5 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition ${appState.selectedCategoryFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'}">
-                    Todas as Categorias
-                </button>
-            `;
+        window.openDepositModal = function(targetBoxId = null) {
+            if (appState.boxes.length === 0) {
+                showToast('Cadastre uma caixinha antes de realizar entradas.', 'error');
+                return;
+            }
 
-            appState.categories.forEach(cat => {
-                const active = appState.selectedCategoryFilter === cat;
-                html += `
-                    <button onclick="filterCategory('${cat.replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition ${active ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'}">
-                        ${cat}
-                    </button>
-                `;
-            });
+            const select = document.getElementById('depositBoxId');
+            if (select) {
+                select.innerHTML = '';
+                appState.boxes.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.innerText = b.name;
+                    select.appendChild(opt);
+                });
+                if (targetBoxId) select.value = targetBoxId;
+            }
 
-            container.innerHTML = html;
+            const dDate = document.getElementById('depositDate');
+            const dAmount = document.getElementById('depositAmount');
+            const dNote = document.getElementById('depositNote');
+            if (dDate) dDate.value = appState.currentDate;
+            if (dAmount) dAmount.value = '';
+            if (dNote) dNote.value = '';
+
+            const depModal = document.getElementById('depositModal');
+            if (depModal) depModal.classList.remove('hidden');
+        };
+
+        window.closeDepositModal = function() {
+            const depModal = document.getElementById('depositModal');
+            if (depModal) depModal.classList.add('hidden');
+        };
+
+        window.saveDeposit = function(e) {
+            e.preventDefault();
+
+            const boxId = document.getElementById('depositBoxId').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            const date = document.getElementById('depositDate').value;
+
+            const destRadios = document.getElementsByName('depositDestination');
+            let dest = 'cash';
+            for (let r of destRadios) {
+                if (r.checked) dest = r.value;
+            }
+
+            if (amount <= 0) {
+                showToast('Informe um valor de entrada válido!', 'error');
+                return;
+            }
+
+            if (!appState.allocations[date]) {
+                appState.allocations[date] = {};
+            }
+
+            const current = appState.allocations[date][boxId] || { allocated: true, cashAmount: 0, bankAmount: 0 };
+            const currentCash = current.cashAmount !== undefined ? current.cashAmount : 0;
+            const currentBank = current.bankAmount !== undefined ? current.bankAmount : 0;
+
+            appState.allocations[date][boxId] = {
+                allocated: true,
+                cashAmount: dest === 'cash' ? currentCash + amount : currentCash,
+                bankAmount: dest === 'bank' ? currentBank + amount : currentBank
+            };
+
+            saveAllocationsToStorage();
+            window.closeDepositModal();
+            renderApp();
+            showToast('Entrada/Depósito registrado com sucesso!');
         };
 
         window.filterCategory = function(cat) {
@@ -1783,15 +1839,75 @@
             renderDailyCards();
         };
 
+        window.renderCategoryFilterBar = function() {
+            const container = document.getElementById('categoryFilterContainer');
+            if (!container) return;
+
+            let html = `
+                <button onclick="filterCategory('all')" class="px-2.5 py-1 text-xs rounded-lg font-semibold transition whitespace-nowrap ${
+                    appState.selectedCategoryFilter === 'all'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                }">
+                    Todas as Categorias
+                </button>
+            `;
+
+            appState.categories.forEach(cat => {
+                const isActive = appState.selectedCategoryFilter === cat;
+                html += `
+                    <button onclick="filterCategory('${cat.replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-xs rounded-lg font-semibold transition whitespace-nowrap ${
+                        isActive
+                            ? 'bg-emerald-600 text-white shadow-sm'
+                            : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }">
+                        ${cat}
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        };
+
+        window.changeBoxSortOrder = function(order) {
+            appState.sortOrder = order;
+            renderDailyCards();
+            if (!document.getElementById('viewBoxes').classList.contains('hidden')) {
+                renderBoxesList();
+            }
+        };
+
+        function getSortedBoxes(boxesList) {
+            const list = [...boxesList];
+            if (appState.sortOrder === 'alpha') {
+                return list.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+            } else if (appState.sortOrder === 'category') {
+                return list.sort((a, b) => (a.category || '').localeCompare(b.category || '', 'pt-BR') || a.name.localeCompare(b.name, 'pt-BR'));
+            }
+            return list;
+        }
+
         window.renderDailyCards = function() {
             const container = document.getElementById('dailyCardsContainer');
             if (!container) return;
 
             let activeBoxes = getActiveBoxesForDate(appState.currentDate);
 
+            // Filtro por Categoria
             if (appState.selectedCategoryFilter !== 'all') {
                 activeBoxes = activeBoxes.filter(b => b.category === appState.selectedCategoryFilter);
             }
+
+            // Filtro por Pesquisa (Lupa)
+            if (appState.searchQuery) {
+                activeBoxes = activeBoxes.filter(b => 
+                    b.name.toLowerCase().includes(appState.searchQuery) || 
+                    (b.category && b.category.toLowerCase().includes(appState.searchQuery))
+                );
+            }
+
+            // Aplica a ordenação selecionada (Alfabética / Categoria / Criação)
+            activeBoxes = getSortedBoxes(activeBoxes);
 
             const dateAllocations = appState.allocations[appState.currentDate] || {};
 
@@ -1804,8 +1920,8 @@
             if (activeBoxes.length === 0) {
                 container.innerHTML = `
                     <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700">
-                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 dark:text-slate-600 mb-2"></i>
-                        <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Nenhuma caixinha encontrada para os filtros selecionados neste dia.</p>
+                        <i class="fa-solid fa-magnifying-glass text-4xl text-slate-300 dark:text-slate-600 mb-2"></i>
+                        <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">Nenhuma caixinha encontrada para o filtro selecionado.</p>
                     </div>
                 `;
                 return;
@@ -1935,12 +2051,13 @@
                 return;
             }
 
+            const sortedBoxes = getSortedBoxes(appState.boxes);
             const gData = calculateBoxBalances();
             const mData = calculateMonthlyTotals(appState.currentDate);
 
             let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
 
-            appState.boxes.forEach(box => {
+            sortedBoxes.forEach(box => {
                 const bGlobal = gData.perBox[box.id] || { netCash: 0, netBank: 0, totalNet: 0 };
                 const bMonth = mData.perBox[box.id] || { totalNet: 0 };
 
