@@ -330,12 +330,15 @@
 
     <!-- Footer / Direitos Autorais Centralizados -->
     <footer class="mt-auto py-6 border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
-        <div class="max-w-7xl mx-auto px-4 text-center">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-1">
             <p class="text-xs font-medium text-slate-500 dark:text-slate-400">
-                &copy; <span id="currentYear"></span> <strong class="text-slate-700 dark:text-slate-200">Caixas Diárias</strong>. Todos os direitos reservados.
+                &copy; <span id="currentYear"></span> <strong class="text-slate-700 dark:text-slate-200">Caixas Diárias</strong> &bull; Desenvolvido por <strong class="text-slate-700 dark:text-slate-200">Danilo Silvano de Lacerda</strong>
             </p>
-            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-                Sistema de Gestão e Alocação Financeira Empresarial
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                E-mail: <a href="mailto:lilo03br@yahoo.com.br" class="text-emerald-600 dark:text-emerald-400 hover:underline font-medium">lilo03br@yahoo.com.br</a>
+            </p>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 pt-1">
+                Sistema de Gestão e Alocação Financeira Empresarial. Todos os direitos reservados.
             </p>
         </div>
     </footer>
@@ -2193,7 +2196,7 @@
                             <div class="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-700/80 text-[11px] text-slate-500 dark:text-slate-400">
                                 <div class="flex justify-between">
                                     <span>Guardado no Mês:</span>
-                                    <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(monthBal.totalNet)} ${hasMonthlyGoal ? `(${monthlyPercent}%)` : ''}</strong>
+                                    <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(monthBal.totalNet)} ${hasMonthlyGoal ? `/ ${formatCurrency(box.monthlyTarget)} (${monthlyPercent}%)` : ''}</strong>
                                 </div>
                                 ${hasMonthlyGoal ? `
                                     <div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden my-1">
@@ -2257,7 +2260,10 @@
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-sm text-slate-800 dark:text-white leading-tight">${box.name}</h4>
-                                    <span class="text-[11px] text-slate-400 font-medium">${box.category || 'Geral'}</span>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="text-[11px] text-slate-400 font-medium">${box.category || 'Geral'}</span>
+                                        ${hasMonthlyGoal ? `<span class="text-[10px] px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-300 font-semibold rounded">Meta Mês: ${formatCurrency(box.monthlyTarget)}</span>` : ''}
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-1">
@@ -2295,8 +2301,14 @@
                             </div>
                         </div>
 
+                        ${hasMonthlyGoal ? `
+                            <div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-indigo-500 h-full rounded-full" style="width: ${monthlyPercent}%"></div>
+                            </div>
+                        ` : ''}
+
                         <div class="flex justify-between items-center text-xs pt-1">
-                            <span class="text-slate-400">No Mês: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(bMonth.totalNet)}</strong> ${hasMonthlyGoal ? `(${monthlyPercent}%)` : ''}</span>
+                            <span class="text-slate-400">No Mês: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(bMonth.totalNet)}</strong> ${hasMonthlyGoal ? `/ ${formatCurrency(box.monthlyTarget)} (${monthlyPercent}%)` : ''}</span>
                             <div class="flex items-center gap-2">
                                 <button onclick="openDepositModal('${box.id}')" class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1">
                                     <i class="fa-solid fa-plus-circle"></i> Entrada
