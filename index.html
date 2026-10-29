@@ -1897,54 +1897,85 @@
 
         window.saveBox = function(e) {
             e.preventDefault();
-            const id = document.getElementById('boxId').value;
-            const name = document.getElementById('boxName').value;
-            const dailyTarget = parseFloat(document.getElementById('boxDailyTarget').value) || 0;
-            const monthlyTargetInput = document.getElementById('boxMonthlyTarget').value;
-            const monthlyTarget = monthlyTargetInput !== "" ? parseFloat(monthlyTargetInput) : null;
-            const color = document.getElementById('boxColor').value;
-            const icon = document.getElementById('boxIcon').value;
+            
+            try {
+                const idEl = document.getElementById('boxId');
+                const nameEl = document.getElementById('boxName');
+                const dailyTargetEl = document.getElementById('boxDailyTarget');
+                const monthlyTargetEl = document.getElementById('boxMonthlyTarget');
+                const colorEl = document.getElementById('boxColor');
+                const iconEl = document.getElementById('boxIcon');
+                const categorySelectEl = document.getElementById('boxCategorySelect');
+                const categoryCustomEl = document.getElementById('boxCategoryCustom');
 
-            const categorySelect = document.getElementById('boxCategorySelect').value;
-            let category = categorySelect;
-            if (categorySelect === 'custom') {
-                category = document.getElementById('boxCategoryCustom').value.trim() || 'Outros Custos';
-            }
+                const id = idEl ? idEl.value : '';
+                const name = nameEl ? nameEl.value.trim() : '';
+                const dailyTarget = dailyTargetEl ? (parseFloat(dailyTargetEl.value) || 0) : 0;
+                const monthlyTargetInput = monthlyTargetEl ? monthlyTargetEl.value.trim() : '';
+                const monthlyTarget = monthlyTargetInput !== "" ? (parseFloat(monthlyTargetInput) || 0) : null;
+                const color = colorEl ? colorEl.value : '#10b981';
+                const icon = iconEl ? iconEl.value : 'fa-house';
 
-            const activeDays = [];
-            for (let i = 0; i < 7; i++) {
-                if (document.getElementById(`day-${i}`).checked) {
-                    activeDays.push(i);
+                const categorySelect = categorySelectEl ? categorySelectEl.value : '';
+                let category = categorySelect;
+                if (categorySelect === 'custom') {
+                    category = (categoryCustomEl && categoryCustomEl.value.trim()) ? categoryCustomEl.value.trim() : 'Outros Custos';
+                    if (!appState.categories.includes(category)) {
+                        appState.categories.push(category);
+                        saveCategoriesToStorage();
+                        populateCategorySelect();
+                    }
                 }
-            }
 
-            if (activeDays.length === 0) {
-                showToast('Selecione pelo menos um dia ativo na semana!', 'error');
-                return;
-            }
-
-            if (id) {
-                const index = appState.boxes.findIndex(b => b.id === id);
-                if (index !== -1) {
-                    appState.boxes[index] = { id, name, category, dailyTarget, monthlyTarget, activeDays, color, icon };
+                const activeDays = [];
+                for (let i = 0; i < 7; i++) {
+                    const dayCheck = document.getElementById(`day-${i}`);
+                    if (dayCheck && dayCheck.checked) {
+                        activeDays.push(i);
+                    }
                 }
-            } else {
-                appState.boxes.push({
-                    id: 'box-' + Date.now(),
-                    name,
-                    category,
-                    dailyTarget,
-                    monthlyTarget,
-                    activeDays,
-                    color,
-                    icon
-                });
-            }
 
-            saveBoxesToStorage();
-            window.closeBoxModal();
-            window.renderApp();
-            showToast('Caixinha salva com sucesso!');
+                if (!name) {
+                    showToast('Informe o nome da caixinha!', 'error');
+                    return;
+                }
+
+                if (dailyTarget <= 0) {
+                    showToast('A meta diária deve ser maior que zero!', 'error');
+                    return;
+                }
+
+                if (activeDays.length === 0) {
+                    showToast('Selecione pelo menos um dia ativo na semana!', 'error');
+                    return;
+                }
+
+                if (id) {
+                    const index = appState.boxes.findIndex(b => b.id === id);
+                    if (index !== -1) {
+                        appState.boxes[index] = { id, name, category, dailyTarget, monthlyTarget, activeDays, color, icon };
+                    }
+                } else {
+                    appState.boxes.push({
+                        id: 'box-' + Date.now(),
+                        name,
+                        category,
+                        dailyTarget,
+                        monthlyTarget,
+                        activeDays,
+                        color,
+                        icon
+                    });
+                }
+
+                saveBoxesToStorage();
+                window.closeBoxModal();
+                window.renderApp();
+                showToast('Caixinha salva com sucesso!');
+            } catch (err) {
+                console.error("Erro ao salvar caixinha:", err);
+                showToast('Erro ao salvar caixinha. Verifique os dados inseridos.', 'error');
+            }
         };
 
         window.editBox = function(id) {
