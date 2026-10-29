@@ -328,6 +328,18 @@
 
     </main>
 
+    <!-- Footer / Direitos Autorais Centralizados -->
+    <footer class="mt-auto py-6 border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">
+                &copy; <span id="currentYear"></span> <strong class="text-slate-700 dark:text-slate-200">Caixas Diárias</strong>. Todos os direitos reservados.
+            </p>
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                Sistema de Gestão e Alocação Financeira Empresarial
+            </p>
+        </div>
+    </footer>
+
     <!-- MODAL: DADOS GERENCIAIS -->
     <div id="managementModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -602,9 +614,15 @@
                     <input type="text" id="boxCategoryCustom" placeholder="Digite o nome do novo tipo de despesa..." class="w-full mt-2 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white hidden">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Meta de Alocação Diária (R$)</label>
-                    <input type="number" step="0.01" min="0.01" id="boxDailyTarget" required placeholder="50.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Meta Diária (R$)*</label>
+                        <input type="number" step="0.01" min="0.01" id="boxDailyTarget" required placeholder="50.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Meta Mensal (R$) <span class="text-[10px] text-slate-400 font-normal">(Opcional)</span></label>
+                        <input type="number" step="0.01" min="0" id="boxMonthlyTarget" placeholder="Ex: 1000.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    </div>
                 </div>
 
                 <div>
@@ -1637,6 +1655,7 @@
                     document.getElementById('boxId').value = box.id;
                     document.getElementById('boxName').value = box.name;
                     document.getElementById('boxDailyTarget').value = box.dailyTarget;
+                    document.getElementById('boxMonthlyTarget').value = box.monthlyTarget || '';
                     document.getElementById('boxColor').value = box.color || '#10b981';
                     document.getElementById('boxIcon').value = box.icon || 'fa-house';
 
@@ -1659,6 +1678,7 @@
             } else {
                 document.getElementById('boxModalTitle').innerText = 'Nova Caixinha';
                 document.getElementById('boxId').value = '';
+                document.getElementById('boxMonthlyTarget').value = '';
                 document.getElementById('boxCategoryCustom').classList.add('hidden');
                 for (let i = 1; i <= 5; i++) {
                     const el = document.getElementById(`day-${i}`);
@@ -1678,6 +1698,8 @@
             const id = document.getElementById('boxId').value;
             const name = document.getElementById('boxName').value;
             const dailyTarget = parseFloat(document.getElementById('boxDailyTarget').value) || 0;
+            const monthlyTargetInput = document.getElementById('boxMonthlyTarget').value;
+            const monthlyTarget = monthlyTargetInput !== "" ? parseFloat(monthlyTargetInput) : null;
             const color = document.getElementById('boxColor').value;
             const icon = document.getElementById('boxIcon').value;
 
@@ -1702,7 +1724,7 @@
             if (id) {
                 const index = appState.boxes.findIndex(b => b.id === id);
                 if (index !== -1) {
-                    appState.boxes[index] = { id, name, category, dailyTarget, activeDays, color, icon };
+                    appState.boxes[index] = { id, name, category, dailyTarget, monthlyTarget, activeDays, color, icon };
                 }
             } else {
                 appState.boxes.push({
@@ -1710,6 +1732,7 @@
                     name,
                     category,
                     dailyTarget,
+                    monthlyTarget,
                     activeDays,
                     color,
                     icon
@@ -2121,6 +2144,9 @@
                     const monthBal = mData.perBox[box.id] || { totalNet: 0 };
                     const globalBal = gData.perBox[box.id] || { totalNet: 0 };
 
+                    const hasMonthlyGoal = box.monthlyTarget && box.monthlyTarget > 0;
+                    const monthlyPercent = hasMonthlyGoal ? Math.min(100, Math.round((monthBal.totalNet / box.monthlyTarget) * 100)) : 0;
+
                     html += `
                         <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border transition shadow-sm ${
                             isAllocated ? 'border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/20 dark:bg-emerald-950/10' : 'border-slate-200 dark:border-slate-700'
@@ -2132,14 +2158,25 @@
                                     </div>
                                     <div>
                                         <h5 class="font-bold text-sm text-slate-800 dark:text-white leading-tight">${box.name}</h5>
-                                        <span class="text-[11px] text-slate-400 font-medium">Meta: ${formatCurrency(box.dailyTarget)}</span>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="text-[11px] text-slate-400 font-medium">Meta Diária: ${formatCurrency(box.dailyTarget)}</span>
+                                            ${hasMonthlyGoal ? `<span class="text-[10px] px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-300 font-semibold rounded">Mês: ${formatCurrency(box.monthlyTarget)}</span>` : ''}
+                                        </div>
                                     </div>
                                 </div>
-                                <button onclick="toggleAllocation('${box.id}')" class="p-2 rounded-xl transition ${
-                                    isAllocated ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-100 text-slate-400 dark:bg-slate-700 hover:text-slate-600'
-                                }" title="${isAllocated ? 'Meta Atingida' : 'Marcar como Alocado'}">
-                                    <i class="fa-solid ${isAllocated ? 'fa-check-circle' : 'fa-circle'} text-lg"></i>
-                                </button>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openDepositModal('${box.id}')" class="p-1.5 text-xs text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition" title="Registrar Entrada nesta caixinha">
+                                        <i class="fa-solid fa-plus-circle text-base"></i>
+                                    </button>
+                                    <button onclick="openWithdrawalModal('${box.id}')" class="p-1.5 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition" title="Registrar Saída nesta caixinha">
+                                        <i class="fa-solid fa-minus-circle text-base"></i>
+                                    </button>
+                                    <button onclick="toggleAllocation('${box.id}')" class="p-2 rounded-xl transition ${
+                                        isAllocated ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-100 text-slate-400 dark:bg-slate-700 hover:text-slate-600'
+                                    }" title="${isAllocated ? 'Meta Atingida' : 'Marcar como Alocado'}">
+                                        <i class="fa-solid ${isAllocated ? 'fa-check-circle' : 'fa-circle'} text-lg"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-2 my-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600/60">
@@ -2156,8 +2193,13 @@
                             <div class="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-700/80 text-[11px] text-slate-500 dark:text-slate-400">
                                 <div class="flex justify-between">
                                     <span>Guardado no Mês:</span>
-                                    <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(monthBal.totalNet)}</strong>
+                                    <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(monthBal.totalNet)} ${hasMonthlyGoal ? `(${monthlyPercent}%)` : ''}</strong>
                                 </div>
+                                ${hasMonthlyGoal ? `
+                                    <div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden my-1">
+                                        <div class="bg-indigo-500 h-full rounded-full" style="width: ${monthlyPercent}%"></div>
+                                    </div>
+                                ` : ''}
                                 <div class="flex justify-between">
                                     <span>Acumulado Histórico:</span>
                                     <strong class="text-indigo-600 dark:text-indigo-400">${formatCurrency(globalBal.totalNet)}</strong>
@@ -2203,6 +2245,8 @@
             sortedBoxes.forEach(box => {
                 const bGlobal = gData.perBox[box.id] || { netCash: 0, netBank: 0, totalNet: 0 };
                 const bMonth = mData.perBox[box.id] || { totalNet: 0 };
+                const hasMonthlyGoal = box.monthlyTarget && box.monthlyTarget > 0;
+                const monthlyPercent = hasMonthlyGoal ? Math.min(100, Math.round((bMonth.totalNet / box.monthlyTarget) * 100)) : 0;
 
                 html += `
                     <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
@@ -2231,6 +2275,12 @@
                                 <span class="text-slate-500 dark:text-slate-400">Meta Diária:</span>
                                 <strong class="text-slate-800 dark:text-white">${formatCurrency(box.dailyTarget)}</strong>
                             </div>
+                            ${hasMonthlyGoal ? `
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400">Meta Mensal:</span>
+                                    <strong class="text-indigo-600 dark:text-indigo-400">${formatCurrency(box.monthlyTarget)}</strong>
+                                </div>
+                            ` : ''}
                             <div class="flex justify-between">
                                 <span class="text-slate-500 dark:text-slate-400">Saldo Dinheiro:</span>
                                 <strong class="text-emerald-600 dark:text-emerald-400">${formatCurrency(bGlobal.netCash)}</strong>
@@ -2246,10 +2296,15 @@
                         </div>
 
                         <div class="flex justify-between items-center text-xs pt-1">
-                            <span class="text-slate-400">No Mês: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(bMonth.totalNet)}</strong></span>
-                            <button onclick="openWithdrawalModal('${box.id}')" class="text-xs text-rose-600 dark:text-rose-400 font-semibold hover:underline flex items-center gap-1">
-                                <i class="fa-solid fa-minus-circle"></i> Retirar
-                            </button>
+                            <span class="text-slate-400">No Mês: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(bMonth.totalNet)}</strong> ${hasMonthlyGoal ? `(${monthlyPercent}%)` : ''}</span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="openDepositModal('${box.id}')" class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1">
+                                    <i class="fa-solid fa-plus-circle"></i> Entrada
+                                </button>
+                                <button onclick="openWithdrawalModal('${box.id}')" class="text-xs text-rose-600 dark:text-rose-400 font-semibold hover:underline flex items-center gap-1">
+                                    <i class="fa-solid fa-minus-circle"></i> Retirar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -2274,15 +2329,24 @@
                 let html = '';
                 appState.boxes.forEach(box => {
                     const item = mData.perBox[box.id] || { netCash: 0, netBank: 0, totalNet: 0 };
+                    const hasGoal = box.monthlyTarget && box.monthlyTarget > 0;
+                    const percent = hasGoal ? Math.min(100, Math.round((item.totalNet / box.monthlyTarget) * 100)) : 0;
+
                     html += `
-                        <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600/60 space-y-1">
+                        <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600/60 space-y-2">
                             <div class="flex justify-between text-xs font-bold text-slate-800 dark:text-white">
                                 <span>${box.name}</span>
-                                <span>${formatCurrency(item.totalNet)}</span>
+                                <span>${formatCurrency(item.totalNet)} ${hasGoal ? `<span class="text-slate-400 font-normal">/ ${formatCurrency(box.monthlyTarget)}</span>` : ''}</span>
                             </div>
+                            ${hasGoal ? `
+                                <div class="w-full bg-slate-200 dark:bg-slate-600 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-500 h-full rounded-full" style="width: ${percent}%"></div>
+                                </div>
+                            ` : ''}
                             <div class="flex justify-between text-[11px] text-slate-400">
                                 <span>Espécie: ${formatCurrency(item.netCash)}</span>
                                 <span>Banco: ${formatCurrency(item.netBank)}</span>
+                                ${hasGoal ? `<span class="font-semibold text-emerald-600 dark:text-emerald-400">${percent}% da meta</span>` : ''}
                             </div>
                         </div>
                     `;
@@ -2383,6 +2447,9 @@
             if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
             }
+            const yearEl = document.getElementById('currentYear');
+            if (yearEl) yearEl.innerText = new Date().getFullYear();
+
             loadLocalStorage();
             initDateSelector();
             updateGoogleUI();
