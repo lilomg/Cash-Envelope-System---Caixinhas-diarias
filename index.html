@@ -741,7 +741,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor da Retirada (R$)</label>
-                    <input type="number" step="0.01" min="0.01" id="withdrawalAmount" required placeholder="50.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
+                    <input type="number" step="0.01" min="0" id="withdrawalAmount" required placeholder="50.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div>
@@ -830,7 +830,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor da Entrada (R$)</label>
-                    <input type="number" step="0.01" min="0.01" id="depositAmount" required placeholder="100.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    <input type="number" step="0.01" min="0" id="depositAmount" required placeholder="100.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div>
@@ -1405,7 +1405,7 @@
                 if (r.checked) dest = r.value;
             }
 
-            if (amount <= 0) {
+            if (amount < 0 || (!editingDeposit && amount === 0)) {
                 showToast('Informe um valor de entrada válido!', 'error');
                 return;
             }
@@ -1507,7 +1507,7 @@
                 if (r.checked) source = r.value;
             }
 
-            if (amount <= 0) {
+            if (amount < 0 || (!withdrawalId && amount === 0)) {
                 showToast('Informe um valor de retirada válido!', 'error');
                 return;
             }
@@ -2100,12 +2100,58 @@
         };
 
         window.deleteBox = function(boxId) {
-            if (confirm('Deseja realmente excluir esta caixinha? Todo o histórico relativo a ela será mantido, mas ela deixará de ser exibida nas alocações.')) {
-                appState.boxes = appState.boxes.filter(b => b.id !== boxId);
-                saveBoxesToStorage();
-                window.renderApp();
-                showToast('Caixinha removida.', 'info');
+            const box = appState.boxes.find(b => b.id === boxId);
+            if (!box) return;
+
+            // Pergunta 1: Confirmação de exclusão da caixinha
+            if (!confirm(`Deseja realmente excluir a caixinha "${box.name}"?`)) {
+                return;
             }
+
+            // Pergunta 2: Opção de apagar ou manter o histórico de lançamentos da caixinha
+            const deleteHistory = confirm(
+                `Deseja também APAGAR TODOS OS LANÇAMENTOS DO HISTÓRICO referentes à caixinha "${box.name}"?\n\n` +
+                `• Clique em [OK] para remover a caixinha E APAGAR todas as suas entradas e retiradas salvas do histórico.\n` +
+                `• Clique em [Cancelar] para remover apenas a caixinha e manter o histórico registrado.`
+            );
+
+            // 1. Remover a caixinha da lista
+            appState.boxes = appState.boxes.filter(b => b.id !== boxId);
+
+            // 2. Se optou por apagar o histórico, realiza o expurgo completo e recalcula o sistema
+            if (deleteHistory) {
+                // Remove as retiradas vinculadas a esta caixinha
+                appState.withdrawals = appState.withdrawals.filter(w => w.boxId !== boxId);
+
+                // Remove as alocações/entradas diárias vinculadas a esta caixinha
+                Object.keys(appState.allocations).forEach(dateKey => {
+                    if (appState.allocations[dateKey] && appState.allocations[dateKey][boxId]) {
+                        delete appState.allocations[dateKey][boxId];
+                    }
+                    // Limpa a data do objeto se ela não possuir mais nenhuma alocação
+                    if (Object.keys(appState.allocations[dateKey]).length === 0) {
+                        delete appState.allocations[dateKey];
+                    }
+                });
+
+                saveWithdrawalsToStorage();
+                saveAllocationsToStorage();
+            }
+
+            saveBoxesToStorage();
+            window.renderApp();
+
+            if (appState.activeTab === 'withdrawals') {
+                window.renderWithdrawalsTab();
+            } else if (appState.activeTab === 'monthly') {
+                window.renderMonthlyTab();
+            }
+
+            showToast(
+                deleteHistory
+                    ? `Caixinha e todo o seu histórico foram apagados com sucesso.`
+                    : `Caixinha removida. O histórico antigo foi mantido.`
+            );
         };
 
         window.onDepositBoxChange = function() {
