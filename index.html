@@ -924,6 +924,7 @@
             selectedCategoryFilter: 'all', 
             sortOrder: 'category',
             searchQuery: '',
+            editingDeposit: false,
             companyName: localStorage.getItem('caixas_company_name') || '',
             companySubtext: localStorage.getItem('caixas_company_subtext') || 'Método de Alocação para Empresas',
             companyLogo: localStorage.getItem('caixas_company_logo') || '',
@@ -1333,9 +1334,23 @@
                 if (targetBoxId) select.value = targetBoxId;
             }
 
+            // Define se está em modo de edição/correção
+            const isEditing = depositType === 'edit';
+            appState.editingDeposit = isEditing;
+
+            // Busca lançamento prévio se for uma edição
+            let existingAlloc = null;
+            if (isEditing && targetBoxId) {
+                const dayAlloc = appState.allocations[appState.currentDate] || {};
+                existingAlloc = dayAlloc[targetBoxId];
+            }
+
+            const activeType = isEditing ? (existingAlloc && existingAlloc.adHocNotes ? 'extra' : 'daily') : depositType;
+
             const typeRadios = document.getElementsByName('depositType');
             for (let r of typeRadios) {
-                if (r.value === depositType) r.checked = true;
+                r.checked = (r.value === activeType);
+                r.disabled = false; // Permite trocar entre meta e extra ao corrigir
             }
 
             window.toggleDepositTypeUI();
@@ -1344,12 +1359,136 @@
             const dDate = document.getElementById('depositDate');
             const dAmount = document.getElementById('depositAmount');
             const dNote = document.getElementById('depositNote');
+            
             if (dDate) dDate.value = appState.currentDate;
-            if (dAmount) dAmount.value = '';
-            if (dNote) dNote.value = depositType === 'extra' ? 'Entrada Extra / Aporte Adicional' : '';
+
+            if (isEditing && existingAlloc) {
+                const cashVal = Number(existingAlloc.cashAmount || 0);
+                const bankVal = Number(existingAlloc.bankAmount || 0);
+                const destVal = bankVal > 0 && cashVal === 0 ? 'bank' : 'cash';
+
+                const destRadios = document.getElementsByName('depositDestination');
+                for (let r of destRadios) {
+                    r.checked = (r.value === destVal);
+                }
+
+                if (dAmount) dAmount.value = destVal === 'bank' ? bankVal : (cashVal + bankVal);
+                if (dNote) dNote.value = existingAlloc.adHocNotes || '';
+
+                if (existingAlloc.registeredDays && existingAlloc.registeredDays.length > 0) {
+                    const dayCheckboxes = document.getElementsByName('depositDay');
+                    for (let cb of dayCheckboxes) {
+                        cb.checked = existingAlloc.registeredDays.includes(parseInt(cb.value));
+                    }
+                }
+            } else {
+                if (dAmount) dAmount.value = '';
+                if (dNote) dNote.value = activeType === 'extra' ? 'Entrada Extra / Aporte Adicional' : '';
+            }
 
             const depModal = document.getElementById('depositModal');
             if (depModal) depModal.classList.remove('hidden');
+        };
+
+        window.toggleDepositTypeUI = function() {
+            const typeRadios = document.getElementsByName('depositType');
+            let isExtra = false;
+            for (let r of typeRadios) {
+                if (r.checked && r.value === 'extra') isExtra = true;
+            }
+
+            const daysWrapper = document.getElementById('depositDaysWrapper');
+            if (daysWrapper) {
+                if (isExtra) daysWrapper.classList.add('hidden');
+                else daysWrapper.classList.remove('hidden');
+            }
+
+            if (!isExtra && !appState.editingDeposit) {
+                window.updateDepositAutoAmount();
+            }
+        };
+
+        window.saveDeposit = function(e) {
+            e.preventDefault();
+
+            const boxId = document.getElementById('depositBoxId').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            const date = document.getElementById('depositDate').value;
+            const note = document.getElementById('depositNote').value.trim();
+
+            const typeRadios = document.getElementsByName('depositType');
+            let isExtra = false;
+            for (let r of typeRadios) {
+                if (r.checked && r.value === 'extra') isExtra = true;
+            }
+
+            let selectedDays = [];
+            if (!isExtra) {
+                const dayCheckboxes = document.getElementsByName('depositDay');
+                for (let cb of dayCheckboxes) {
+                    if (cb.checked) {
+                        selectedDays.push(parseInt(cb.value));
+                    }
+                }
+
+                if (selectedDays.length === 0) {
+                    showToast('Selecione pelo menos um dia da semana para registrar esta entrada!', 'error');
+                    return;
+                }
+            }
+
+            const destRadios = document.getElementsByName('depositDestination');
+            let dest = 'cash';
+            for (let r of destRadios) {
+                if (r.checked) dest = r.value;
+            }
+
+            // Em modo de correção (editingDeposit), aceita valor 0 para zerar se necessário
+            if (amount < 0 || (!appState.editingDeposit && amount === 0)) {
+                showToast('Informe um valor de entrada válido!', 'error');
+                return;
+            }
+
+            if (!appState.allocations[date]) {
+                appState.allocations[date] = {};
+            }
+
+            const existing = appState.allocations[date][boxId] || {};
+            const prevCash = Number(existing.cashAmount || 0);
+            const prevBank = Number(existing.bankAmount || 0);
+
+            if (appState.editingDeposit) {
+                // Correção direta: substitui o lançamento anterior pelos novos dados
+                appState.allocations[date][boxId] = {
+                    allocated: true,
+                    registeredDays: selectedDays,
+                    cashAmount: dest === 'cash' ? amount : 0,
+                    bankAmount: dest === 'bank' ? amount : 0,
+                    adHocNotes: note
+                };
+            } else if (isExtra) {
+                appState.allocations[date][boxId] = {
+                    allocated: true,
+                    registeredDays: existing.registeredDays || [],
+                    cashAmount: prevCash + (dest === 'cash' ? amount : 0),
+                    bankAmount: prevBank + (dest === 'bank' ? amount : 0),
+                    adHocNotes: existing.adHocNotes ? `${existing.adHocNotes}; ${note || 'Aporte Extra'}` : (note || 'Aporte Extra')
+                };
+            } else {
+                appState.allocations[date][boxId] = {
+                    allocated: true,
+                    registeredDays: selectedDays,
+                    cashAmount: dest === 'cash' ? amount : prevCash,
+                    bankAmount: dest === 'bank' ? amount : prevBank,
+                    adHocNotes: existing.adHocNotes || ''
+                };
+            }
+
+            appState.editingDeposit = false; // Limpa o estado de edição após salvar
+            saveAllocationsToStorage();
+            window.closeDepositModal();
+            window.renderApp();
+            showToast(isExtra ? 'Entrada Extra registrada com sucesso!' : 'Lançamento corrigido e salvo com sucesso!');
         };
 
         window.toggleDepositTypeUI = function() {
@@ -1794,7 +1933,7 @@
 
                                     <!-- Botão 4: Corrigir Entrada (Exibido após o + Extra quando a caixinha estiver alocada no dia) -->
                                     ${isAllocated ? `
-                                        <button onclick="openDepositModal('${box.id}', 'daily')" title="Corrigir / Editar Entrada Salva" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-100 hover:text-emerald-800 transition flex items-center gap-1 border border-slate-200 dark:border-slate-600">
+                                        <button onclick="openDepositModal('${box.id}', 'edit')" title="Corrigir / Editar Entrada Salva" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-100 hover:text-emerald-800 transition flex items-center gap-1 border border-slate-200 dark:border-slate-600">
                                             <i class="fa-solid fa-pen text-[10px]"></i>
                                             <span>Corrigir</span>
                                         </button>
