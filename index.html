@@ -28,7 +28,7 @@
         @layer components {
             .modal { @apply fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4; }
             .modal.open { @apply flex; }
-            .modal-card { @apply bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto custom-scrollbar; }
+            .modal-card { @apply bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto; }
             .modal-head { @apply flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700; }
             .modal-title { @apply text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2; }
             .modal-foot { @apply flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-700; }
@@ -44,9 +44,9 @@
             .tab-btn { @apply pb-3 text-sm font-semibold border-b-2 flex items-center gap-2 whitespace-nowrap border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300; }
             .tab-btn.active { @apply border-emerald-600 text-emerald-600 dark:text-emerald-400; }
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,.05); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,.2); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar, .modal-card::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track, .modal-card::-webkit-scrollbar-track { background: rgba(0,0,0,.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb, .modal-card::-webkit-scrollbar-thumb { background: rgba(0,0,0,.2); border-radius: 4px; }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col font-sans transition-colors duration-200">
@@ -358,7 +358,7 @@
 
 <!-- Único modal de entrada (antes existiam 2 com o mesmo id) -->
 <div id="depositModal" class="modal"><div class="modal-card">
-    <div class="modal-head"><h3 class="modal-title"><i class="fa-solid fa-circle-plus text-emerald-600"></i> Registrar Entrada / Depósito</h3><button onclick="closeModal('depositModal')" class="x-btn" aria-label="Fechar"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+    <div class="modal-head"><h3 id="depositModalTitle" class="modal-title"><i class="fa-solid fa-circle-plus text-emerald-600"></i> Registrar Entrada / Depósito</h3><button onclick="closeModal('depositModal')" class="x-btn" aria-label="Fechar"><i class="fa-solid fa-xmark text-lg"></i></button></div>
     <form onsubmit="saveDeposit(event)" class="mt-4 space-y-4">
         <div>
             <label class="lbl">Tipo de Aporte</label>
@@ -712,11 +712,11 @@ function renderDailyCards() {
                     </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <div class="hidden sm:flex items-center gap-1.5">
+                    <div class="flex items-center gap-1.5">
                         ${isAllocated
-                            ? `<span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Alocado</span>
-                               <button data-action="deposit" data-id="${esc(box.id)}" data-type="target" title="Corrigir / Editar Entrada Salva" class="px-2 py-1 text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-emerald-100 hover:text-emerald-800 transition flex items-center gap-1"><i class="fa-solid fa-pen text-[10px]"></i> Corrigir</button>`
-                            : `<span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 flex items-center gap-1"><i class="fa-solid fa-clock"></i> Pendente</span>`}
+                            ? `<span class="hidden sm:flex px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 items-center gap-1"><i class="fa-solid fa-circle-check"></i> Alocado</span>
+                               <button data-action="deposit" data-id="${esc(box.id)}" data-type="edit" title="Corrigir / Editar Entrada Salva" class="px-2 py-1 text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-emerald-100 hover:text-emerald-800 transition flex items-center gap-1"><i class="fa-solid fa-pen text-[10px]"></i> Corrigir</button>`
+                            : `<span class="hidden sm:flex px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 items-center gap-1"><i class="fa-solid fa-clock"></i> Pendente</span>`}
                     </div>
                     <button data-action="deposit" data-id="${esc(box.id)}" data-type="target" title="Registrar Entrada Meta Diária" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 transition flex items-center gap-1 border border-emerald-200 dark:border-emerald-800"><i class="fa-solid fa-square-plus text-sm"></i><span class="hidden sm:inline">Entrada</span></button>
                     <button data-action="withdraw" data-id="${esc(box.id)}" title="Registrar Retirada" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 transition flex items-center gap-1 border border-rose-200 dark:border-rose-800"><i class="fa-solid fa-hand-holding-dollar text-sm"></i><span class="hidden sm:inline">Retirada</span></button>
@@ -997,16 +997,41 @@ function deleteBox(id) {
 const radioValue = name => document.querySelector(`input[name="${name}"]:checked`)?.value;
 const isExtraDeposit = () => radioValue('depositType') === 'extra';
 
+let editingDeposit = false;   // true quando o modal corrige um lançamento já salvo
+
 function openDepositModal(boxId = null, type = 'target') {
     if (!state.boxes.length) return showToast('Cadastre uma caixinha antes de realizar entradas.', 'error');
     if (type === 'daily') type = 'target';
+    const existing = type === 'edit' && boxId ? state.allocations[state.currentDate]?.[boxId] : null;
+    if (type === 'edit' && !existing?.allocated) type = 'target';   // nada salvo para corrigir
+    editingDeposit = type === 'edit';
+    if (editingDeposit) type = 'target';
+
     $('depositBoxId').innerHTML = state.boxes.map(b => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
     if (boxId) $('depositBoxId').value = boxId;
     document.querySelector(`input[name="depositType"][value="${type}"]`).checked = true;
     $('depositDate').value = state.currentDate;
     $('depositNote').value = type === 'extra' ? 'Entrada Extra / Aporte Adicional' : '';
+    $('depositBoxId').disabled = $('depositDate').disabled = editingDeposit;
+    document.querySelectorAll('input[name="depositType"]').forEach(r => { r.disabled = editingDeposit; });
+    $('depositModalTitle').innerHTML = editingDeposit
+        ? '<i class="fa-solid fa-pen text-emerald-600"></i> Corrigir Lançamento do Dia'
+        : '<i class="fa-solid fa-circle-plus text-emerald-600"></i> Registrar Entrada / Depósito';
+
     onDepositBoxChange();
     toggleDepositTypeUI();
+
+    if (editingDeposit) {
+        // Carrega os valores realmente salvos (dias, forma e valor)
+        const box = boxById(boxId);
+        const { cash, bank } = allocAmounts(existing, box);
+        const dest = bank > 0 && cash === 0 ? 'bank' : 'cash';
+        document.querySelector(`input[name="depositDestination"][value="${dest}"]`).checked = true;
+        $('depositAmount').value = (dest === 'bank' ? bank : cash + bank).toFixed(2);
+        const saved = existing.registeredDays || [];
+        document.querySelectorAll('input[name="depositDay"]').forEach(cb => { cb.checked = saved.includes(+cb.value); });
+        $('depositNote').value = existing.adHocNotes || '';
+    }
     openModal('depositModal');
 }
 
@@ -1022,7 +1047,7 @@ function onDepositBoxChange() {
 }
 
 function updateDepositAutoAmount() {
-    if (isExtraDeposit()) return;
+    if (isExtraDeposit() || editingDeposit) return;
     const box = boxById($('depositBoxId').value);
     if (!box) return;
     const count = document.querySelectorAll('input[name="depositDay"]:checked').length;
@@ -1032,7 +1057,7 @@ function updateDepositAutoAmount() {
 function toggleDepositTypeUI() {
     const extra = isExtraDeposit();
     $('depositDaysWrapper').classList.toggle('hidden', extra);
-    if (extra) { $('depositAmount').value = ''; $('depositAmount').focus(); }
+    if (extra && !editingDeposit) { $('depositAmount').value = ''; $('depositAmount').focus(); }
     else updateDepositAutoAmount();
 }
 
@@ -1059,7 +1084,16 @@ function saveDeposit(e) {
     const prevCash = num(prev.cashAmount), prevBank = num(prev.bankAmount);
     const prevNotes = prev.adHocNotes || '';
 
-    if (extra) {
+    if (editingDeposit) {
+        // Correção: substitui o lançamento do dia pelos valores informados
+        dayObj[boxId] = {
+            allocated: true,
+            registeredDays: days,
+            cashAmount: dest === 'cash' ? amount : 0,
+            bankAmount: dest === 'bank' ? amount : 0,
+            adHocNotes: note
+        };
+    } else if (extra) {
         dayObj[boxId] = {
             allocated: true,
             registeredDays: prev.registeredDays || [],
@@ -1078,7 +1112,7 @@ function saveDeposit(e) {
     }
     persist('allocations');
     closeModal('depositModal'); renderApp();
-    showToast(extra ? 'Entrada extra registrada com sucesso!' : 'Entrada de meta atualizada com sucesso!');
+    showToast(editingDeposit ? 'Lançamento corrigido com sucesso!' : extra ? 'Entrada extra registrada com sucesso!' : 'Entrada de meta atualizada com sucesso!');
 }
 
 function markAllToday(shouldAllocate) {
