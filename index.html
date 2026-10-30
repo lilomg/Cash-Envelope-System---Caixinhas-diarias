@@ -729,7 +729,68 @@
 
     <!-- MODAL: REGISTRAR RETIRADA -->
     <div id="withdrawalModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <!-- ... existing withdrawal modal content ... -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-dollar text-rose-500"></i>
+                    Registrar Retirada / Débito
+                </h3>
+                <button onclick="closeWithdrawalModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="withdrawalForm" onsubmit="saveWithdrawal(event)" class="mt-4 space-y-4">
+                <input type="hidden" id="withdrawalId">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Caixinha de Origem</label>
+                    <select id="withdrawalBoxId" required onchange="updateWithdrawalBalanceInfo()" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
+                    </select>
+                </div>
+
+                <div id="withdrawalBalanceInfo" class="bg-slate-100 dark:bg-slate-700/50 p-3 rounded-xl text-xs space-y-1">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Retirar de Onde?</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="withdrawalSource" value="cash" checked class="peer hidden">
+                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-money-bill-wave mr-1"></i> Dinheiro (Espécie)
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="withdrawalSource" value="bank" class="peer hidden">
+                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-building-columns mr-1"></i> Banco / PIX
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor da Retirada (R$)</label>
+                    <input type="number" step="0.01" min="0.01" id="withdrawalAmount" required placeholder="100.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Data da Operação</label>
+                    <input type="date" id="withdrawalDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Motivo / Descrição da Despesa</label>
+                    <input type="text" id="withdrawalNote" placeholder="Ex: Pagamento do aluguel ou compra com PIX" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-rose-500 focus:outline-none dark:text-white">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeWithdrawalModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow transition">Confirmar Retirada</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- MODAL: REGISTRAR ENTRADA -->
@@ -1324,7 +1385,7 @@
             let allocatedCash = 0;
             let allocatedBank = 0;
             let pendingCount = 0;
-            let dailyPendingVal = 0;
+            let weeklyPendingTotalVal = 0;
 
             activeBoxes.forEach(box => {
                 const boxTargetToday = getTargetForBoxDay(box, currentDayOfWeek);
@@ -1377,7 +1438,21 @@
 
                 if (!weekGoalFulfilled) {
                     pendingCount++;
-                    dailyPendingVal += boxTargetToday;
+                    // Soma a meta pendente da semana para esta caixinha (soma dos dias ativos da caixinha que ainda não foram cumpridos na semana atual)
+                    activeDaysList.forEach(dayIdx => {
+                        let dayHasEntry = false;
+                        Object.keys(appState.allocations).forEach(dKey => {
+                            if (getCalendarWeekKey(dKey) === currentWeekKey) {
+                                const dAlloc = appState.allocations[dKey][box.id];
+                                if (dAlloc && dAlloc.allocated && dAlloc.registeredDays && dAlloc.registeredDays.includes(dayIdx)) {
+                                    dayHasEntry = true;
+                                }
+                            }
+                        });
+                        if (!dayHasEntry) {
+                            weeklyPendingTotalVal += getTargetForBoxDay(box, dayIdx);
+                        }
+                    });
                 }
             });
 
@@ -1388,7 +1463,7 @@
             if (elTarget) elTarget.innerText = formatCurrency(dailyTargetTotal);
 
             const elPending = document.getElementById('kpiDailyPending');
-            if (elPending) elPending.innerText = formatCurrency(dailyPendingVal);
+            if (elPending) elPending.innerText = formatCurrency(weeklyPendingTotalVal);
 
             const kpiPendingCount = document.getElementById('kpiPendingCount');
             if (kpiPendingCount) kpiPendingCount.innerText = `${pendingCount} caixinha(s) restante(s)`;
