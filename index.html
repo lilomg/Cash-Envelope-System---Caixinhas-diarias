@@ -776,8 +776,19 @@
             <form id="depositForm" onsubmit="saveDeposit(event)" class="mt-4 space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Caixinha de Destino</label>
-                    <select id="depositBoxId" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    <select id="depositBoxId" required onchange="onDepositBoxChange()" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
                     </select>
+                </div>
+
+                <!-- SELEÇÃO OBRIGATÓRIA DOS DIAS DA SEMANA PARA A ENTRADA -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Dias da Semana Registrados <span class="text-rose-500">* (Obrigatório)</span>
+                    </label>
+                    <p class="text-[11px] text-slate-400 mb-2">Selecione para qual(is) dia(s) da meta esta entrada está sendo realizada:</p>
+                    <div id="depositDaysContainer" class="grid grid-cols-7 gap-1 text-center">
+                        <!-- Renderizado dinamicamente conforme a caixinha selecionada -->
+                    </div>
                 </div>
 
                 <div>
@@ -1390,6 +1401,8 @@
                 if (targetBoxId) select.value = targetBoxId;
             }
 
+            window.onDepositBoxChange();
+
             const dDate = document.getElementById('depositDate');
             const dAmount = document.getElementById('depositAmount');
             const dNote = document.getElementById('depositNote');
@@ -1399,6 +1412,109 @@
 
             const depModal = document.getElementById('depositModal');
             if (depModal) depModal.classList.remove('hidden');
+        };
+
+        /**
+         * Renderiza os checkboxes dos dias da semana ativos na caixinha selecionada no modal de depósito.
+         */
+        window.onDepositBoxChange = function() {
+            const select = document.getElementById('depositBoxId');
+            const container = document.getElementById('depositDaysContainer');
+            if (!select || !container) return;
+
+            const boxId = select.value;
+            const box = appState.boxes.find(b => b.id === boxId);
+            if (!box) return;
+
+            const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const activeDays = box.activeDays || [1, 2, 3, 4, 5];
+
+            // Identifica qual é o dia da semana da data selecionada
+            const parts = appState.currentDate.split('-');
+            const currentDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            const currentDayOfWeek = currentDateObj.getDay();
+
+            let html = '';
+            [1, 2, 3, 4, 5, 6, 0].forEach(dayIdx => {
+                const isActiveForBox = activeDays.includes(dayIdx);
+                const isSelectedByDefault = dayIdx === currentDayOfWeek && isActiveForBox;
+
+                html += `
+                    <label class="${isActiveForBox ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'}">
+                        <input type="checkbox" name="depositDay" value="${dayIdx}" ${isSelectedByDefault ? 'checked' : ''} ${!isActiveForBox ? 'disabled' : ''} class="peer hidden">
+                        <span class="block py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-slate-600 dark:text-slate-300 transition">
+                            ${dayNames[dayIdx]}
+                        </span>
+                    </label>
+                `;
+            });
+
+            container.innerHTML = html;
+        };
+
+        /**
+         * Fecha o modal de depósito de valores.
+         */
+        window.closeDepositModal = function() {
+            const depModal = document.getElementById('depositModal');
+            if (depModal) depModal.classList.add('hidden');
+        };
+
+        /**
+         * Processa e salva o formulário de depósito/entrada de valor na caixinha especificada.
+         * @param {Event} e - Evento de submit do formulário.
+         */
+        window.saveDeposit = function(e) {
+            e.preventDefault();
+
+            const boxId = document.getElementById('depositBoxId').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            const date = document.getElementById('depositDate').value;
+
+            // Coleta e valida os dias selecionados
+            const dayCheckboxes = document.getElementsByName('depositDay');
+            const selectedDays = [];
+            for (let cb of dayCheckboxes) {
+                if (cb.checked) {
+                    selectedDays.push(parseInt(cb.value));
+                }
+            }
+
+            if (selectedDays.length === 0) {
+                showToast('Selecione pelo menos um dia da semana para registrar esta entrada!', 'error');
+                return;
+            }
+
+            const destRadios = document.getElementsByName('depositDestination');
+            let dest = 'cash';
+            for (let r of destRadios) {
+                if (r.checked) dest = r.value;
+            }
+
+            if (amount <= 0) {
+                showToast('Informe um valor de entrada válido!', 'error');
+                return;
+            }
+
+            if (!appState.allocations[date]) {
+                appState.allocations[date] = {};
+            }
+
+            const current = appState.allocations[date][boxId] || { allocated: true, cashAmount: 0, bankAmount: 0 };
+            const currentCash = current.cashAmount !== undefined ? current.cashAmount : 0;
+            const currentBank = current.bankAmount !== undefined ? current.bankAmount : 0;
+
+            appState.allocations[date][boxId] = {
+                allocated: true,
+                registeredDays: selectedDays,
+                cashAmount: dest === 'cash' ? currentCash + amount : currentCash,
+                bankAmount: dest === 'bank' ? currentBank + amount : currentBank
+            };
+
+            saveAllocationsToStorage();
+            window.closeDepositModal();
+            window.renderApp();
+            showToast('Entrada registrada com sucesso para os dias selecionados!');
         };
 
         /**
@@ -2407,6 +2523,49 @@
                                     }" title="${isAllocated ? 'Meta Atingida' : 'Marcar como Alocado'}">
                                         <i class="fa-solid ${isAllocated ? 'fa-check-circle' : 'fa-circle'} text-lg"></i>
                                     </button>
+                                </div>
+                            </div>
+
+                            <!-- SINALIZAÇÃO DOS DIAS DA SEMANA COM ENTRADAS REGISTRADAS -->
+                            <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-700/60">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Entradas da Semana:</span>
+                                </div>
+                                <div class="grid grid-cols-7 gap-1 text-center">
+                                    ${(() => {
+                                        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                                        const activeDays = box.activeDays || [1, 2, 3, 4, 5];
+                                        const registeredDays = alloc.registeredDays || (isAllocated ? activeDays : []);
+
+                                        return [1, 2, 3, 4, 5, 6, 0].map(dayIdx => {
+                                            const isActive = activeDays.includes(dayIdx);
+                                            const hasEntry = isActive && registeredDays.includes(dayIdx);
+
+                                            if (!isActive) {
+                                                return `
+                                                    <div class="py-1 px-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-700/40 text-slate-300 dark:text-slate-600 border border-transparent" title="Dia inativo nesta caixinha">
+                                                        ${dayNames[dayIdx]}
+                                                    </div>
+                                                `;
+                                            }
+
+                                            if (hasEntry) {
+                                                return `
+                                                    <div class="py-1 px-0.5 rounded-md text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex flex-col items-center justify-center gap-0.5" title="Entrada registrada para este dia!">
+                                                        <span>${dayNames[dayIdx]}</span>
+                                                        <i class="fa-solid fa-circle-check text-[9px] text-emerald-600 dark:text-emerald-400"></i>
+                                                    </div>
+                                                `;
+                                            }
+
+                                            return `
+                                                <div class="py-1 px-0.5 rounded-md text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/80 flex flex-col items-center justify-center gap-0.5" title="Pendente: Entrada não registrada para este dia ativo">
+                                                    <span>${dayNames[dayIdx]}</span>
+                                                    <i class="fa-solid fa-circle-exclamation text-[9px] text-amber-500"></i>
+                                                </div>
+                                            `;
+                                        }).join('');
+                                    })()}
                                 </div>
                             </div>
 
