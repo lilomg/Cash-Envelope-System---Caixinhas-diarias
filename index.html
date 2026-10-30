@@ -1901,7 +1901,7 @@
                                                 <span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1">
                                                     <i class="fa-solid fa-circle-check"></i> Alocado
                                                 </span>
-                                                <button onclick="openDepositModal('${box.id}')" title="Corrigir / Editar Entrada Salva" class="px-2 py-1 text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-emerald-100 hover:text-emerald-800 transition flex items-center gap-1">
+                                                <button onclick="openDepositModal('${box.id}', 'daily')" title="Corrigir / Editar Entrada Salva" class="px-2 py-1 text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-emerald-100 hover:text-emerald-800 transition flex items-center gap-1">
                                                     <i class="fa-solid fa-pen text-[10px]"></i> Corrigir
                                                 </button>
                                             </div>` : 
@@ -1913,12 +1913,24 @@
                                 </div>
 
                                 <div class="flex items-center gap-1">
-                                    <button onclick="openDepositModal('${box.id}')" title="Registrar / Corrigir Entrada" class="p-2 rounded-xl text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition">
-                                        <i class="fa-solid fa-circle-plus text-lg"></i>
+                                    <!-- Botão 1: Registrar Entrada Meta Diária -->
+                                    <button onclick="openDepositModal('${box.id}', 'daily')" title="Registrar Entrada Meta Diária" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 transition flex items-center gap-1 border border-emerald-200 dark:border-emerald-800">
+                                        <i class="fa-solid fa-square-plus text-sm"></i>
+                                        <span class="hidden sm:inline">Entrada</span>
                                     </button>
-                                    <button onclick="openWithdrawalModal('${box.id}')" title="Registrar Retirada" class="p-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition">
-                                        <i class="fa-solid fa-hand-holding-dollar text-lg"></i>
+
+                                    <!-- Botão 2: Registrar Retirada -->
+                                    <button onclick="openWithdrawalModal('${box.id}')" title="Registrar Retirada" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 transition flex items-center gap-1 border border-rose-200 dark:border-rose-800">
+                                        <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
+                                        <span class="hidden sm:inline">Retirada</span>
                                     </button>
+
+                                    <!-- Botão 3: Registrar Entrada Extra (Abaixo / Após a Retirada) com Ícone de Raio ⚡ -->
+                                    <button onclick="openDepositModal('${box.id}', 'extra')" title="Registrar Entrada Extra" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 transition flex items-center gap-1 border border-amber-200 dark:border-amber-800">
+                                        <i class="fa-solid fa-bolt text-amber-500 text-sm"></i>
+                                        <span>+ Extra</span>
+                                    </button>
+
                                     <i id="boxCardChevron-${box.id}" class="fa-solid fa-chevron-down text-slate-400 text-sm ml-1 transition-transform duration-200"></i>
                                 </div>
                             </div>
@@ -1942,11 +1954,103 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-1.5 pt-2 border-t border-slate-200 dark:border-slate-700">
-                                <div class="flex justify-between items-center text-xs">
-                                    <span class="font-semibold text-slate-600 dark:text-slate-300">Acumulado no Mês (${formatCurrency(boxMonth.totalNet)})</span>
-                                    <span class="font-bold text-emerald-600 dark:text-emerald-400">${monthPercent}% da meta mensal</span>
+                            ${alloc.adHocNotes ? `
+                                <div class="p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i>
+                                    <span><strong>Entradas Avulsas/Observações de Hoje:</strong> ${alloc.adHocNotes}</span>
                                 </div>
+                            ` : ''}
+
+                            <div class="space-y-1.5 pt-2 border-t border-slate-200 dark:border-slate-700">
+    <!-- MODAL: REGISTRAR ENTRADA -->
+    <div id="depositModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus text-emerald-600"></i>
+                    Registrar Entrada / Depósito
+                </h3>
+                <button onclick="closeDepositModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="depositForm" onsubmit="saveDeposit(event)" class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tipo de Aporte</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="depositType" value="target" checked onchange="toggleDepositTypeUI()" class="peer hidden">
+                            <div class="p-2 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-bullseye mr-1"></i> Meta Diária
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="depositType" value="extra" onchange="toggleDepositTypeUI()" class="peer hidden">
+                            <div class="p-2 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-star mr-1"></i> Entrada Extra
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Caixinha de Destino</label>
+                    <select id="depositBoxId" required onchange="onDepositBoxChange()" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    </select>
+                </div>
+
+                <!-- SELEÇÃO DE DIAS DA SEMANA PARA A META DIÁRIA -->
+                <div id="depositDaysWrapper">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Dias da Semana Registrados <span class="text-rose-500">* (Obrigatório)</span>
+                    </label>
+                    <p class="text-[11px] text-slate-400 mb-2">Selecione para qual(is) dia(s) da meta esta entrada está sendo realizada:</p>
+                    <div id="depositDaysContainer" class="grid grid-cols-7 gap-1 text-center">
+                        <!-- Renderizado dinamicamente conforme a caixinha selecionada -->
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Forma de Entrada</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="depositDestination" value="cash" checked class="peer hidden">
+                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-money-bill-wave mr-1"></i> Dinheiro
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="depositDestination" value="bank" class="peer hidden">
+                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-building-columns mr-1"></i> Banco / PIX
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor da Entrada (R$)</label>
+                    <input type="number" step="0.01" min="0.01" id="depositAmount" required placeholder="100.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Data do Depósito</label>
+                    <input type="date" id="depositDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Origem / Observação (Avulso)</label>
+                    <input type="text" id="depositNote" placeholder="Ex: Aporte extraordinário, sobra de troco ou rendimento" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeDepositModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow transition">Confirmar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
                                 ${monthlyTarget > 0 ? `
                                     <div class="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
                                         <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: ${monthPercent}%"></div>
@@ -2018,62 +2122,240 @@
         };
 
         /**
-         * Renderiza a lista de caixinhas na aba "Minhas Caixinhas".
+         * Alterna a exibição da seção de dias da semana caso o tipo de entrada seja Entrada Avulsa.
          */
-        window.renderBoxesTab = function() {
-            const container = document.getElementById('boxesListContainer');
-            if (!container) return;
+        window.toggleDepositTypeUI = function() {
+            const entryTypeRadios = document.getElementsByName('depositEntryType');
+            let isAdHoc = false;
+            for (let r of entryTypeRadios) {
+                if (r.checked && r.value === 'adHoc') isAdHoc = true;
+            }
 
+            const daysSection = document.getElementById('depositDaysSection');
+            if (daysSection) {
+                if (isAdHoc) {
+                    daysSection.classList.add('hidden');
+                } else {
+                    daysSection.classList.remove('hidden');
+                }
+            }
+
+            if (!isAdHoc) {
+                window.updateDepositAutoAmount();
+            } else {
+                const amountInput = document.getElementById('depositAmount');
+                if (amountInput && (!amountInput.value || amountInput.value == '0.00')) {
+                    amountInput.value = '';
+                    amountInput.focus();
+                }
+            }
+        };
+
+        /**
+         * Abre o modal para registrar uma entrada/depósito de valor em uma caixinha.
+         * @param {string|null} targetBoxId - ID opcional da caixinha já pré-selecionada.
+         * @param {string} depositType - Tipo de entrada ('daily' ou 'extra').
+         */
+        window.openDepositModal = function(targetBoxId = null, depositType = 'daily') {
             if (appState.boxes.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700 space-y-3">
-                        <p class="text-xs text-slate-400">Nenhuma caixinha cadastrada.</p>
-                        <button onclick="openBoxModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow">
-                            + Criar Primeira Caixinha
-                        </button>
-                    </div>
-                `;
+                showToast('Cadastre uma caixinha antes de realizar entradas.', 'error');
                 return;
             }
 
-            const balances = calculateBoxBalances();
+            const select = document.getElementById('depositBoxId');
+            if (select) {
+                select.innerHTML = '';
+                appState.boxes.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.innerText = b.name;
+                    select.appendChild(opt);
+                });
+                if (targetBoxId) select.value = targetBoxId;
+            }
 
-            let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
-            appState.boxes.forEach(box => {
-                const bal = balances.perBox[box.id] || { totalNet: 0, netCash: 0, netBank: 0 };
-                html += `
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg" style="background-color: ${box.color || '#10b981'}">
-                                    <i class="fa-solid ${box.icon || 'fa-vault'}"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 dark:text-white text-sm">${box.name}</h4>
-                                    <span class="text-xs text-slate-400">${box.category || 'Geral'}</span>
-                                </div>
-                            </div>
-                            <button onclick="openBoxModal('${box.id}')" class="p-2 text-slate-400 hover:text-emerald-600 transition">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                        </div>
+            // Seleciona o tipo de entrada (Diária x Extra)
+            const typeRadios = document.getElementsByName('depositType');
+            for (let r of typeRadios) {
+                if (r.value === depositType) r.checked = true;
+            }
 
-                        <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100 dark:border-slate-700">
-                            <div>
-                                <span class="text-slate-400">Meta Diária:</span>
-                                <div class="font-bold text-slate-700 dark:text-slate-200">${formatCurrency(box.dailyTarget)}</div>
-                            </div>
-                            <div>
-                                <span class="text-slate-400">Saldo Histórico:</span>
-                                <div class="font-bold text-emerald-600 dark:text-emerald-400">${formatCurrency(bal.totalNet)}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
+            window.onDepositBoxChange();
 
-            container.innerHTML = html;
+            const dDate = document.getElementById('depositDate');
+            const dAmount = document.getElementById('depositAmount');
+            const dNote = document.getElementById('depositNote');
+            if (dDate) dDate.value = appState.currentDate;
+            if (dAmount) dAmount.value = '';
+            if (dNote) dNote.value = depositType === 'extra' ? 'Entrada Extra / Aporte Adicional' : '';
+
+            const depModal = document.getElementById('depositModal');
+            if (depModal) depModal.classList.remove('hidden');
+        };
+
+        /**
+         * Alterna a exibição dos campos do modal de acordo com o tipo selecionado (Meta Diária vs Entrada Extra).
+         */
+        window.toggleDepositTypeUI = function() {
+            const typeRadios = document.getElementsByName('depositType');
+            let isExtra = false;
+            for (let r of typeRadios) {
+                if (r.checked && r.value === 'extra') isExtra = true;
+            }
+
+            const daysWrapper = document.getElementById('depositDaysWrapper');
+            if (daysWrapper) {
+                if (isExtra) daysWrapper.classList.add('hidden');
+                else daysWrapper.classList.remove('hidden');
+            }
+
+            if (!isExtra) {
+                window.updateDepositAutoAmount();
+            }
+        };
+
+        window.saveDeposit = function(e) {
+            e.preventDefault();
+
+            const boxId = document.getElementById('depositBoxId').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            const date = document.getElementById('depositDate').value;
+
+            const typeRadios = document.getElementsByName('depositType');
+            let isExtra = false;
+            for (let r of typeRadios) {
+                if (r.checked && r.value === 'extra') isExtra = true;
+            }
+
+            let selectedDays = [];
+            if (!isExtra) {
+                const dayCheckboxes = document.getElementsByName('depositDay');
+                for (let cb of dayCheckboxes) {
+                    if (cb.checked) {
+                        selectedDays.push(parseInt(cb.value));
+                    }
+                }
+
+                if (selectedDays.length === 0) {
+                    showToast('Selecione pelo menos um dia da semana para registrar esta entrada!', 'error');
+                    return;
+                }
+            }
+
+            const destRadios = document.getElementsByName('depositDestination');
+            let dest = 'cash';
+            for (let r of destRadios) {
+                if (r.checked) dest = r.value;
+            }
+
+            if (amount <= 0) {
+                showToast('Informe um valor de entrada válido!', 'error');
+                return;
+            }
+
+            if (!appState.allocations[date]) {
+                appState.allocations[date] = {};
+            }
+
+            const existing = appState.allocations[date][boxId] || {};
+            const prevCash = existing.cashAmount || 0;
+            const prevBank = existing.bankAmount || 0;
+
+            if (isExtra) {
+                appState.allocations[date][boxId] = {
+                    allocated: true,
+                    registeredDays: existing.registeredDays || [],
+                    cashAmount: prevCash + (dest === 'cash' ? amount : 0),
+                    bankAmount: prevBank + (dest === 'bank' ? amount : 0)
+                };
+            } else {
+                appState.allocations[date][boxId] = {
+                    allocated: true,
+                    registeredDays: selectedDays,
+                    cashAmount: dest === 'cash' ? amount : 0,
+                    bankAmount: dest === 'bank' ? amount : 0
+                };
+            }
+
+            saveAllocationsToStorage();
+            window.closeDepositModal();
+            window.renderApp();
+            showToast(isExtra ? 'Entrada Extra registrada com sucesso!' : 'Entrada atualizada com sucesso!');
+        };
+
+        window.saveDeposit = function(e) {
+            e.preventDefault();
+
+            const boxId = document.getElementById('depositBoxId').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
+            const date = document.getElementById('depositDate').value;
+            const note = document.getElementById('depositNote').value.trim();
+
+            const typeRadios = document.getElementsByName('depositEntryType');
+            let isAdHoc = false;
+            for (let r of typeRadios) {
+                if (r.checked && r.value === 'adHoc') isAdHoc = true;
+            }
+
+            let selectedDays = [];
+            if (!isAdHoc) {
+                // Coleta e valida os dias selecionados apenas para meta diária
+                const dayCheckboxes = document.getElementsByName('depositDay');
+                for (let cb of dayCheckboxes) {
+                    if (cb.checked) {
+                        selectedDays.push(parseInt(cb.value));
+                    }
+                }
+
+                if (selectedDays.length === 0) {
+                    showToast('Selecione pelo menos um dia da semana para registrar esta entrada!', 'error');
+                    return;
+                }
+            }
+
+            const destRadios = document.getElementsByName('depositDestination');
+            let dest = 'cash';
+            for (let r of destRadios) {
+                if (r.checked) dest = r.value;
+            }
+
+            if (amount <= 0) {
+                showToast('Informe um valor de entrada válido!', 'error');
+                return;
+            }
+
+            if (!appState.allocations[date]) {
+                appState.allocations[date] = {};
+            }
+
+            const existingAlloc = appState.allocations[date][boxId] || {};
+            const prevCash = Number(existingAlloc.cashAmount || 0);
+            const prevBank = Number(existingAlloc.bankAmount || 0);
+            const prevDays = existingAlloc.registeredDays || [];
+
+            if (isAdHoc) {
+                // Soma como entrada avulsa sem alterar os dias da meta cumpridos
+                appState.allocations[date][boxId] = {
+                    allocated: true,
+                    registeredDays: prevDays.length > 0 ? prevDays : [],
+                    cashAmount: dest === 'cash' ? (prevCash + amount) : prevCash,
+                    bankAmount: dest === 'bank' ? (prevBank + amount) : prevBank,
+                    adHocNotes: existingAlloc.adHocNotes ? `${existingAlloc.adHocNotes}; ${note || 'Aporte Avulso'}` : (note || 'Aporte Avulso')
+                };
+            } else {
+                appState.allocations[date][boxId] = {
+                    allocated: true,
+                    registeredDays: selectedDays,
+                    cashAmount: dest === 'cash' ? amount : prevCash,
+                    bankAmount: dest === 'bank' ? amount : prevBank,
+                    adHocNotes: existingAlloc.adHocNotes || ''
+                };
+            }
+
+            saveAllocationsToStorage();
+            window.closeDepositModal();
+            window.renderApp();
+            showToast(isAdHoc ? 'Entrada avulsa registrada com sucesso!' : 'Entrada de meta atualizada com sucesso!');
         };
 
         /**
