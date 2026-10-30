@@ -284,7 +284,16 @@
 
         <!-- ABA 2: MINHAS CAIXINHAS -->
         <section id="viewBoxes" class="hidden space-y-4">
-            <div id="boxesListContainer"></div>
+            <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-boxes-stacked text-emerald-600"></i>
+                    Gerenciamento Geral de Caixinhas
+                </h3>
+                <button onclick="openBoxModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Nova Caixinha
+                </button>
+            </div>
+            <div id="boxesListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </section>
 
         <!-- ABA 3: RESUMO POR PERÍODO -->
@@ -2772,17 +2781,104 @@
                 targetBtn.classList.add('border-emerald-600', 'text-emerald-600', 'dark:text-emerald-400');
             }
 
-            if (tabName === 'monthly') {
+            if (tabName === 'boxes') {
+                window.renderBoxesTab();
+            } else if (tabName === 'monthly') {
                 window.renderMonthlyTab();
             } else if (tabName === 'withdrawals') {
                 window.renderWithdrawalsTab();
             }
         };
 
+        window.renderBoxesTab = function() {
+            const container = document.getElementById('boxesListContainer');
+            if (!container) return;
+
+            if (appState.boxes.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700 space-y-3">
+                        <i class="fa-solid fa-boxes-stacked text-3xl text-slate-300 dark:text-slate-600"></i>
+                        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300">Nenhuma caixinha cadastrada</h4>
+                        <p class="text-xs text-slate-400">Clique em "Nova Caixinha" para começar a estruturar seu negócio.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const balances = calculateBoxBalances();
+            const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+            let html = '';
+            appState.boxes.forEach(box => {
+                const boxBal = balances.perBox[box.id] || { totalNet: 0, netCash: 0, netBank: 0 };
+                const monthlyTarget = box.monthlyTarget || 0;
+
+                let activeDaysBadges = '<div class="flex items-center gap-1 mt-2 flex-wrap">';
+                for (let i = 0; i < 7; i++) {
+                    const active = (box.activeDays || []).includes(i);
+                    activeDaysBadges += `<span class="px-2 py-0.5 text-[10px] font-semibold rounded ${active ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 text-slate-400 dark:bg-slate-700/50 dark:text-slate-500'}">${dayNames[i]}</span>`;
+                }
+                activeDaysBadges += '</div>';
+
+                html += `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0" style="background-color: ${box.color || '#10b981'}">
+                                    <i class="fa-solid ${box.icon || 'fa-vault'}"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-800 dark:text-white">${box.name}</h4>
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                        ${box.category || 'Geral'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="openBoxModal('${box.id}')" title="Editar Caixinha" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition">
+                                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                </button>
+                                <button onclick="deleteBox('${box.id}')" title="Excluir Caixinha" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-rose-600 transition">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100 dark:border-slate-700">
+                            <div>
+                                <span class="text-slate-400 font-medium">Meta Diária:</span>
+                                <div class="font-bold text-slate-700 dark:text-slate-200">${formatCurrency(box.dailyTarget)}</div>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 font-medium">Meta Mensal:</span>
+                                <div class="font-bold text-slate-700 dark:text-slate-200">${monthlyTarget > 0 ? formatCurrency(monthlyTarget) : 'Não definida'}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[11px] text-slate-400 font-medium">Dias Ativos:</span>
+                            ${activeDaysBadges}
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs">
+                            <span class="text-slate-500 dark:text-slate-400 font-medium">Saldo Líquido Acumulado:</span>
+                            <span class="font-extrabold text-emerald-600 dark:text-emerald-400">${formatCurrency(boxBal.totalNet)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        };
+
         window.renderApp = function() {
             renderKPIs();
             window.renderCategoryFilterBar();
             window.renderDailyCards();
+
+            if (!document.getElementById('viewBoxes').classList.contains('hidden')) {
+                window.renderBoxesTab();
+            }
 
             const boxBadge = document.getElementById('boxCountBadge');
             if (boxBadge) boxBadge.innerText = appState.boxes.length;
