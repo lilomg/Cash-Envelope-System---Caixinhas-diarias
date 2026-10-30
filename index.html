@@ -1291,27 +1291,72 @@
 
             const activeBoxes = getActiveBoxesForDate(appState.currentDate);
             const dateAllocations = appState.allocations[appState.currentDate] || {};
+            const currentWeekKey = getCalendarWeekKey(appState.currentDate);
 
             let dailyTargetTotal = 0;
             let allocatedCash = 0;
             let allocatedBank = 0;
             let pendingCount = 0;
+            let dailyPendingVal = 0;
 
             activeBoxes.forEach(box => {
                 dailyTargetTotal += box.dailyTarget;
                 const alloc = dateAllocations[box.id];
-                if (alloc && alloc.allocated) {
+                const isAllocatedToday = alloc && alloc.allocated;
+
+                const parts = appState.currentDate.split('-');
+                const currentDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                const currentDayOfWeek = currentDateObj.getDay();
+
+                let hasEntryForThisWeekdayInCurrentWeek = false;
+                Object.keys(appState.allocations).forEach(dKey => {
+                    if (getCalendarWeekKey(dKey) === currentWeekKey) {
+                        const dAlloc = appState.allocations[dKey][box.id];
+                        if (dAlloc && dAlloc.allocated && dAlloc.registeredDays && dAlloc.registeredDays.includes(currentDayOfWeek)) {
+                            hasEntryForThisWeekdayInCurrentWeek = true;
+                        }
+                    }
+                });
+
+                const activeDaysList = box.activeDays || [];
+                let weekGoalFulfilled = activeDaysList.length > 0;
+                
+                if (activeDaysList.length > 0) {
+                    activeDaysList.forEach(dayIdx => {
+                        let dayHasEntry = false;
+                        if (currentDayOfWeek === dayIdx && isAllocatedToday) {
+                            dayHasEntry = true;
+                        }
+                        Object.keys(appState.allocations).forEach(dKey => {
+                            if (getCalendarWeekKey(dKey) === currentWeekKey) {
+                                const dAlloc = appState.allocations[dKey][box.id];
+                                if (dAlloc && dAlloc.allocated && dAlloc.registeredDays && dAlloc.registeredDays.includes(dayIdx)) {
+                                    dayHasEntry = true;
+                                }
+                            }
+                        });
+                        if (!dayHasEntry) {
+                            weekGoalFulfilled = false;
+                        }
+                    });
+                } else {
+                    weekGoalFulfilled = isAllocatedToday || hasEntryForThisWeekdayInCurrentWeek;
+                }
+
+                if (isAllocatedToday) {
                     const cash = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : box.dailyTarget);
                     const bank = Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
                     allocatedCash += cash;
                     allocatedBank += bank;
-                } else {
+                }
+
+                if (!weekGoalFulfilled) {
                     pendingCount++;
+                    dailyPendingVal += box.dailyTarget;
                 }
             });
 
             const totalAllocatedToday = allocatedCash + allocatedBank;
-            const dailyPendingVal = Math.max(0, dailyTargetTotal - totalAllocatedToday);
             const percent = dailyTargetTotal > 0 ? Math.min(100, Math.round((totalAllocatedToday / dailyTargetTotal) * 100)) : 0;
 
             const elTarget = document.getElementById('kpiDailyTarget');
@@ -1321,7 +1366,7 @@
             if (elPending) elPending.innerText = formatCurrency(dailyPendingVal);
 
             const kpiPendingCount = document.getElementById('kpiPendingCount');
-            if (kpiPendingCount) kpiPendingCount.innerText = `${pendingCount} caixinha(s) pendente(s)`;
+            if (kpiPendingCount) kpiPendingCount.innerText = `${pendingCount} caixinha(s) restante(s)`;
 
             const barFill = document.getElementById('progressBarFill');
             const barText = document.getElementById('progressBarText');
