@@ -1881,7 +1881,6 @@
                 const currentDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
                 const currentDayOfWeek = currentDateObj.getDay();
 
-                // Verifica se já existe um lançamento para o dia da semana atual na semana corrente
                 let hasEntryForThisWeekdayInCurrentWeek = false;
                 Object.keys(appState.allocations).forEach(dKey => {
                     if (getCalendarWeekKey(dKey) === currentWeekKey) {
@@ -1892,7 +1891,7 @@
                     }
                 });
 
-                // Verifica se TODAS as metas dos dias ativos da semana já foram cumpridas (meta da semana cumprida)
+                // Regra estrita: Verifica se TODOS os dias ativos configurados na caixinha possuem lançamento na semana atual
                 const activeDaysList = box.activeDays || [];
                 let weekGoalFulfilled = activeDaysList.length > 0;
                 
@@ -1920,8 +1919,8 @@
 
                 const isGoalFulfilledForDay = isAllocatedToday || hasEntryForThisWeekdayInCurrentWeek;
 
-                if (appState.activeFilter === 'completed' && !isGoalFulfilledForDay) return;
-                if (appState.activeFilter === 'pending' && isGoalFulfilledForDay) return;
+                if (appState.activeFilter === 'completed' && !weekGoalFulfilled) return;
+                if (appState.activeFilter === 'pending' && weekGoalFulfilled) return;
 
                 const boxBal = balances.perBox[box.id] || { totalNet: 0, netCash: 0, netBank: 0 };
                 const boxMonth = monthlyTotals.perBox[box.id] || { totalNet: 0 };
