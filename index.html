@@ -123,6 +123,12 @@
                         <span>Registrar Retirada</span>
                     </button>
 
+                    <!-- Transferir Saldo (Dinheiro ↔ Banco) -->
+                    <button onclick="openTransferModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-100 dark:hover:bg-cyan-900 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        <span>Transferir Saldo</span>
+                    </button>
+
                     <!-- Dados Gerenciais -->
                     <button onclick="openManagementModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-chart-line text-amber-600 dark:text-amber-400"></i>
@@ -764,88 +770,68 @@
 
     <!-- MODAL: REGISTRAR ENTRADA -->
     <div id="depositModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <!-- ... existing modal content ... -->
+    </div>
+
+    <!-- MODAL: TRANSFERIR ENTRE FORMAS DE PAGAMENTO (DINHEIRO ↔ BANCO) -->
+    <div id="transferModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-700">
                 <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-circle-plus text-emerald-600"></i>
-                    Registrar Entrada / Depósito
+                    <i class="fa-solid fa-arrow-right-arrow-left text-cyan-600"></i>
+                    Transferir Saldo Interno
                 </h3>
-                <button onclick="closeDepositModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <button onclick="closeTransferModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <form id="depositForm" onsubmit="saveDeposit(event)" class="mt-4 space-y-4">
+            <form id="transferForm" onsubmit="saveTransfer(event)" class="mt-4 space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tipo de Entrada</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="depositType" value="daily" checked onchange="toggleDepositTypeUI()" class="peer hidden">
-                            <div class="p-2 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
-                                <i class="fa-solid fa-bullseye mr-1"></i> Meta Diária
-                            </div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="depositType" value="extra" onchange="toggleDepositTypeUI()" class="peer hidden">
-                            <div class="p-2 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-amber-600 peer-checked:text-white font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
-                                <i class="fa-solid fa-bolt mr-1"></i> Entrada Extra
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Caixinha de Destino</label>
-                    <select id="depositBoxId" required onchange="onDepositBoxChange()" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Caixinha</label>
+                    <select id="transferBoxId" required onchange="updateTransferBalanceInfo()" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none dark:text-white">
                     </select>
                 </div>
 
-                <!-- SELEÇÃO DE DIAS DA SEMANA PARA A META DIÁRIA -->
-                <div id="depositDaysWrapper">
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Dias da Semana Registrados <span class="text-rose-500">* (Obrigatório)</span>
-                    </label>
-                    <p class="text-[11px] text-slate-400 mb-2">Selecione para qual(is) dia(s) da meta esta entrada está sendo realizada:</p>
-                    <div id="depositDaysContainer" class="grid grid-cols-7 gap-1 text-center">
-                    </div>
+                <div id="transferBalanceInfo" class="bg-slate-100 dark:bg-slate-700/50 p-3 rounded-xl text-xs space-y-1">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Forma de Entrada</label>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Sentido da Transferência</label>
                     <div class="grid grid-cols-2 gap-2">
                         <label class="cursor-pointer">
-                            <input type="radio" name="depositDestination" value="cash" checked class="peer hidden">
-                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
-                                <i class="fa-solid fa-money-bill-wave mr-1"></i> Dinheiro
+                            <input type="radio" name="transferDirection" value="cashToBank" checked onchange="updateTransferBalanceInfo()" class="peer hidden">
+                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-cyan-600 peer-checked:text-white font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-money-bill-wave mr-1"></i> Dinheiro ➔ Banco
                             </div>
                         </label>
                         <label class="cursor-pointer">
-                            <input type="radio" name="depositDestination" value="bank" class="peer hidden">
-                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
-                                <i class="fa-solid fa-building-columns mr-1"></i> Banco / PIX
+                            <input type="radio" name="transferDirection" value="bankToCash" onchange="updateTransferBalanceInfo()" class="peer hidden">
+                            <div class="p-2.5 text-center rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white font-semibold text-xs text-slate-700 dark:text-slate-200 transition">
+                                <i class="fa-solid fa-building-columns mr-1"></i> Banco ➔ Dinheiro
                             </div>
                         </label>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor da Entrada (R$)</label>
-                    <input type="number" step="0.01" min="0" id="depositAmount" required placeholder="100.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Valor a Transferir (R$)</label>
+                    <input type="number" step="0.01" min="0.01" id="transferAmount" required placeholder="100.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Data do Depósito</label>
-                    <input type="date" id="depositDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Data da Operação</label>
+                    <input type="date" id="transferDate" required class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Origem / Observação</label>
-                    <input type="text" id="depositNote" placeholder="Ex: Aporte extraordinário, sobra de troco ou rendimento" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Observação / Motivo</label>
+                    <input type="text" id="transferNote" placeholder="Ex: Depósito do troco no banco ou sangria para caixa" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none dark:text-white">
                 </div>
 
                 <div class="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
-                    <button type="button" onclick="closeDepositModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow transition">Confirmar Entrada</button>
+                    <button type="button" onclick="closeTransferModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg shadow transition">Confirmar Transferência</button>
                 </div>
             </form>
         </div>
@@ -932,6 +918,7 @@
             boxes: [],
             allocations: {},
             withdrawals: [],
+            transfers: [],
             chartInstance: null,
             googleUser: JSON.parse(localStorage.getItem('caixas_google_user') || 'null'),
             googleScriptUrl: localStorage.getItem('caixas_google_script_url') || ''
@@ -957,6 +944,11 @@
             syncToGoogleSheet();
         }
 
+        function saveTransfersToStorage() {
+            localStorage.setItem('caixas_transfers', JSON.stringify(appState.transfers));
+            syncToGoogleSheet();
+        }
+
         function loadLocalStorage() {
             const savedBoxes = localStorage.getItem('caixas_boxes');
             if (savedBoxes) {
@@ -974,6 +966,11 @@
             if (savedWith) {
                 try { appState.withdrawals = JSON.parse(savedWith); } catch(e) { appState.withdrawals = []; }
             }
+
+            const savedTransfers = localStorage.getItem('caixas_transfers');
+            if (savedTransfers) {
+                try { appState.transfers = JSON.parse(savedTransfers); } catch(e) { appState.transfers = []; }
+            }
         }
 
         function syncToGoogleSheet() {
@@ -989,7 +986,8 @@
                         categories: appState.categories,
                         boxes: appState.boxes,
                         allocations: appState.allocations,
-                        withdrawals: appState.withdrawals
+                        withdrawals: appState.withdrawals,
+                        transfers: appState.transfers
                     })
                 });
             } catch (err) {
@@ -997,18 +995,11 @@
             }
         }
 
-        function getActiveBoxesForDate(dateStr) {
-            const parts = dateStr.split('-');
-            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-            const dayOfWeek = dateObj.getDay(); 
-            return appState.boxes.filter(b => (b.activeDays || []).includes(dayOfWeek));
-        }
-
         function calculateBoxBalances() {
             const result = { perBox: {}, totalCash: 0, totalBank: 0, totalWithdrawals: 0, globalNet: 0 };
 
             appState.boxes.forEach(b => {
-                result.perBox[b.id] = { cash: 0, bank: 0, wCash: 0, wBank: 0, netCash: 0, netBank: 0, totalNet: 0 };
+                result.perBox[b.id] = { cash: 0, bank: 0, wCash: 0, wBank: 0, tInCash: 0, tInBank: 0, netCash: 0, netBank: 0, totalNet: 0 };
             });
 
             Object.keys(appState.allocations).forEach(dStr => {
@@ -1037,10 +1028,24 @@
                 }
             });
 
+            appState.transfers.forEach(t => {
+                const bId = t.boxId;
+                if (result.perBox[bId]) {
+                    const amt = Number(t.amount || 0);
+                    if (t.direction === 'cashToBank') {
+                        result.perBox[bId].tInBank += amt; // Entrou no banco, saiu do dinheiro
+                        result.perBox[bId].tInCash -= amt;
+                    } else if (t.direction === 'bankToCash') {
+                        result.perBox[bId].tInCash += amt; // Entrou no dinheiro, saiu do banco
+                        result.perBox[bId].tInBank -= amt;
+                    }
+                }
+            });
+
             Object.keys(result.perBox).forEach(bId => {
                 const item = result.perBox[bId];
-                item.netCash = item.cash - item.wCash;
-                item.netBank = item.bank - item.wBank;
+                item.netCash = item.cash - item.wCash + item.tInCash;
+                item.netBank = item.bank - item.wBank + item.tInBank;
                 item.totalNet = item.netCash + item.netBank;
 
                 result.totalCash += item.netCash;
@@ -1057,7 +1062,7 @@
             const result = { perBox: {}, monthCash: 0, monthBank: 0, monthWithdrawals: 0, monthNet: 0 };
 
             appState.boxes.forEach(b => {
-                result.perBox[b.id] = { cash: 0, bank: 0, wCash: 0, wBank: 0, netCash: 0, netBank: 0, totalNet: 0 };
+                result.perBox[b.id] = { cash: 0, bank: 0, wCash: 0, wBank: 0, tInCash: 0, tInBank: 0, netCash: 0, netBank: 0, totalNet: 0 };
             });
 
             Object.keys(appState.allocations).forEach(dStr => {
@@ -1090,10 +1095,26 @@
                 }
             });
 
+            appState.transfers.forEach(t => {
+                if (t.date && t.date.startsWith(yearMonth)) {
+                    const bId = t.boxId;
+                    if (result.perBox[bId]) {
+                        const amt = Number(t.amount || 0);
+                        if (t.direction === 'cashToBank') {
+                            result.perBox[bId].tInBank += amt;
+                            result.perBox[bId].tInCash -= amt;
+                        } else if (t.direction === 'bankToCash') {
+                            result.perBox[bId].tInCash += amt;
+                            result.perBox[bId].tInBank -= amt;
+                        }
+                    }
+                }
+            });
+
             Object.keys(result.perBox).forEach(bId => {
                 const item = result.perBox[bId];
-                item.netCash = item.cash - item.wCash;
-                item.netBank = item.bank - item.wBank;
+                item.netCash = item.cash - item.wCash + item.tInCash;
+                item.netBank = item.bank - item.wBank + item.tInBank;
                 item.totalNet = item.netCash + item.netBank;
 
                 result.monthCash += item.netCash;
@@ -1103,6 +1124,123 @@
 
             result.monthNet = result.monthCash + result.monthBank;
             return result;
+        }
+
+        /* FUNÇÕES DE TRANSFERÊNCIA INTERNA (DINHEIRO ↔ BANCO) */
+        window.openTransferModal = function(targetBoxId = null) {
+            if (appState.boxes.length === 0) {
+                showToast('Cadastre uma caixinha antes de realizar transferências.', 'error');
+                return;
+            }
+
+            const select = document.getElementById('transferBoxId');
+            if (select) {
+                select.innerHTML = '';
+                appState.boxes.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.innerText = b.name;
+                    select.appendChild(opt);
+                });
+                if (targetBoxId) select.value = targetBoxId;
+            }
+
+            const tDate = document.getElementById('transferDate');
+            const tAmount = document.getElementById('transferAmount');
+            const tNote = document.getElementById('transferNote');
+
+            if (tDate) tDate.value = appState.currentDate;
+            if (tAmount) tAmount.value = '';
+            if (tNote) tNote.value = '';
+
+            window.updateTransferBalanceInfo();
+
+            const modal = document.getElementById('transferModal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeTransferModal = function() {
+            document.getElementById('transferModal').classList.add('hidden');
+        };
+
+        window.updateTransferBalanceInfo = function() {
+            const select = document.getElementById('transferBoxId');
+            const infoContainer = document.getElementById('transferBalanceInfo');
+            if (!select || !infoContainer) return;
+
+            const boxId = select.value;
+            const balances = calculateBoxBalances();
+            const bBal = balances.perBox[boxId] || { totalNet: 0, netCash: 0, netBank: 0 };
+
+            const dirRadios = document.getElementsByName('transferDirection');
+            let isCashToBank = true;
+            for (let r of dirRadios) {
+                if (r.checked && r.value === 'bankToCash') isCashToBank = false;
+            }
+
+            infoContainer.innerHTML = `
+                <div class="flex justify-between">
+                    <span class="text-slate-500 dark:text-slate-400">Saldo Disponível na Origem (${isCashToBank ? 'Dinheiro' : 'Banco / PIX'}):</span>
+                    <strong class="${isCashToBank ? 'text-emerald-600 dark:text-emerald-400' : 'text-cyan-600 dark:text-cyan-400'}">${formatCurrency(isCashToBank ? bBal.netCash : bBal.netBank)}</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500 dark:text-slate-400">Saldo Atual no Destino (${isCashToBank ? 'Banco / PIX' : 'Dinheiro'}):</span>
+                    <strong class="${isCashToBank ? 'text-cyan-600 dark:text-cyan-400' : 'text-emerald-600 dark:text-emerald-400'}">${formatCurrency(isCashToBank ? bBal.netBank : bBal.netCash)}</strong>
+                </div>
+            `;
+        };
+
+        window.saveTransfer = function(e) {
+            e.preventDefault();
+
+            const boxId = document.getElementById('transferBoxId').value;
+            const amount = parseFloat(document.getElementById('transferAmount').value) || 0;
+            const date = document.getElementById('transferDate').value;
+            const note = document.getElementById('transferNote').value.trim();
+
+            const dirRadios = document.getElementsByName('transferDirection');
+            let direction = 'cashToBank';
+            for (let r of dirRadios) {
+                if (r.checked) direction = r.value;
+            }
+
+            if (amount <= 0) {
+                showToast('Informe um valor de transferência válido!', 'error');
+                return;
+            }
+
+            const balances = calculateBoxBalances();
+            const bBal = balances.perBox[boxId] || { netCash: 0, netBank: 0 };
+            const currentSourceBalance = direction === 'cashToBank' ? bBal.netCash : bBal.netBank;
+
+            if (amount > currentSourceBalance) {
+                if (!confirm(`Atenção: O valor da transferência (${formatCurrency(amount)}) é maior do que o saldo disponível na origem (${formatCurrency(currentSourceBalance)}). Deseja continuar mesmo assim?`)) {
+                    return;
+                }
+            }
+
+            const newTransfer = {
+                id: `trans-${Date.now()}`,
+                boxId,
+                amount,
+                date,
+                direction,
+                note
+            };
+
+            appState.transfers.unshift(newTransfer);
+            saveTransfersToStorage();
+
+            window.closeTransferModal();
+            window.renderApp();
+            showToast('Transferência de saldo realizada com sucesso!');
+        };
+
+        function getActiveBoxesForDate(dateStr) {
+            const parts = dateStr.split('-');
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            const dayOfWeek = dateObj.getDay(); 
+            return appState.boxes.filter(b => (b.activeDays || []).includes(dayOfWeek));
         }
 
         function renderKPIs() {
@@ -1841,7 +1979,13 @@
                                         <span>+ Extra</span>
                                     </button>
 
-                                    <!-- Botão 4: Corrigir Entrada (Exibido após o + Extra quando a caixinha estiver alocada no dia) -->
+                                    <!-- Botão 4: Transferir Saldo interno (Dinheiro ↔ Banco) -->
+                                    <button onclick="openTransferModal('${box.id}')" title="Transferir Saldo entre Dinheiro e Banco" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/50 hover:bg-cyan-100 transition flex items-center gap-1 border border-cyan-200 dark:border-cyan-800">
+                                        <i class="fa-solid fa-arrow-right-arrow-left text-sm"></i>
+                                        <span class="hidden lg:inline">Transferir</span>
+                                    </button>
+
+                                    <!-- Botão 5: Corrigir Entrada (Exibido após o + Extra quando a caixinha estiver alocada no dia) -->
                                     ${isAllocated ? `
                                         <button onclick="openDepositModal('${box.id}', 'edit')" title="Corrigir / Editar Entrada Salva" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-100 hover:text-emerald-800 transition flex items-center gap-1 border border-slate-200 dark:border-slate-600">
                                             <i class="fa-solid fa-pen text-[10px]"></i>
@@ -1867,6 +2011,17 @@
                                 <div class="p-3 bg-white dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
                                     <span class="text-slate-400 font-medium">Lançamento de Hoje (Banco / PIX):</span>
                                     <div class="font-bold text-slate-800 dark:text-white text-sm mt-0.5">${formatCurrency(alloc.bankAmount)}</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                <div class="p-2.5 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 rounded-xl">
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Saldo Atual Acumulado (Dinheiro):</span>
+                                    <div class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm mt-0.5">${formatCurrency(boxBal.netCash)}</div>
+                                </div>
+                                <div class="p-2.5 bg-cyan-50/60 dark:bg-cyan-950/20 border border-cyan-200/60 dark:border-cyan-800/40 rounded-xl">
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Saldo Atual Acumulado (Banco / PIX):</span>
+                                    <div class="font-extrabold text-cyan-600 dark:text-cyan-400 text-sm mt-0.5">${formatCurrency(boxBal.netBank)}</div>
                                 </div>
                             </div>
 
@@ -2434,6 +2589,7 @@
                 boxes: appState.boxes,
                 allocations: appState.allocations,
                 withdrawals: appState.withdrawals,
+                transfers: appState.transfers,
                 exportedAt: new Date().toISOString()
             };
 
@@ -2459,12 +2615,14 @@
                         appState.boxes = parsed.boxes;
                         appState.allocations = parsed.allocations || {};
                         appState.withdrawals = parsed.withdrawals || [];
+                        appState.transfers = parsed.transfers || [];
                         if (parsed.categories) appState.categories = parsed.categories;
                         if (parsed.companyName) appState.companyName = parsed.companyName;
 
                         saveBoxesToStorage();
                         saveAllocationsToStorage();
                         saveWithdrawalsToStorage();
+                        saveTransfersToStorage();
                         saveCategoriesToStorage();
 
                         window.closeBackupModal();
