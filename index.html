@@ -1877,7 +1877,6 @@
                 const alloc = dateAllocations[box.id] || { allocated: false, cashAmount: 0, bankAmount: 0 };
                 const isAllocatedToday = alloc.allocated;
 
-                // Descobre o dia da semana atual selecionado
                 const parts = appState.currentDate.split('-');
                 const currentDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
                 const currentDayOfWeek = currentDateObj.getDay();
@@ -1893,7 +1892,32 @@
                     }
                 });
 
-                // A meta é considerada cumprida se foi alocada hoje ou se já foi cumprida para esse dia na semana
+                // Verifica se TODAS as metas dos dias ativos da semana já foram cumpridas (meta da semana cumprida)
+                const activeDaysList = box.activeDays || [];
+                let weekGoalFulfilled = activeDaysList.length > 0;
+                
+                if (activeDaysList.length > 0) {
+                    activeDaysList.forEach(dayIdx => {
+                        let dayHasEntry = false;
+                        if (currentDayOfWeek === dayIdx && isAllocatedToday) {
+                            dayHasEntry = true;
+                        }
+                        Object.keys(appState.allocations).forEach(dKey => {
+                            if (getCalendarWeekKey(dKey) === currentWeekKey) {
+                                const dAlloc = appState.allocations[dKey][box.id];
+                                if (dAlloc && dAlloc.allocated && dAlloc.registeredDays && dAlloc.registeredDays.includes(dayIdx)) {
+                                    dayHasEntry = true;
+                                }
+                            }
+                        });
+                        if (!dayHasEntry) {
+                            weekGoalFulfilled = false;
+                        }
+                    });
+                } else {
+                    weekGoalFulfilled = isAllocatedToday || hasEntryForThisWeekdayInCurrentWeek;
+                }
+
                 const isGoalFulfilledForDay = isAllocatedToday || hasEntryForThisWeekdayInCurrentWeek;
 
                 if (appState.activeFilter === 'completed' && !isGoalFulfilledForDay) return;
@@ -1966,11 +1990,11 @@
 
                             <div class="flex items-center space-x-3 shrink-0" onclick="event.stopPropagation()">
                                 <div class="text-right hidden sm:block">
-                                    <span class="text-[10px] font-semibold uppercase text-slate-400">Status do Dia</span>
+                                    <span class="text-[10px] font-semibold uppercase text-slate-400">Status da Semana</span>
                                     <div>
-                                        ${isGoalFulfilledForDay ? 
+                                        ${weekGoalFulfilled ? 
                                             `<span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1">
-                                                <i class="fa-solid fa-circle-check"></i> Alocado
+                                                <i class="fa-solid fa-circle-check"></i> Concluída
                                             </span>` : 
                                             `<span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 flex items-center gap-1">
                                                 <i class="fa-solid fa-clock"></i> Pendente
