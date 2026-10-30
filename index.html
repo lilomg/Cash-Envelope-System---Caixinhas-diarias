@@ -632,7 +632,7 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Meta Diária (R$)*</label>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Meta Diária (Padrão)*</label>
                         <input type="number" step="0.01" min="0.01" id="boxDailyTarget" required placeholder="50.00" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:text-white">
                     </div>
                     <div>
@@ -642,36 +642,52 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Dias da semana ativos:</label>
-                    <div class="grid grid-cols-7 gap-1 text-center">
-                        <label class="cursor-pointer">
-                            <input type="checkbox" id="day-1" class="peer hidden">
-                            <span class="block py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-slate-600 dark:text-slate-300">Seg</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" id="day-2" class="peer hidden">
-                            <span class="block py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-slate-600 dark:text-slate-300">Ter</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" id="day-3" class="peer hidden">
-                            <span class="block py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-slate-600 dark:text-slate-300">Qua</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" id="day-4" class="peer hidden">
-                            <span class="block py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-slate-600 dark:text-slate-300">Qui</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" id="day-5" class="peer hidden">
-                            <span class="block py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 font-semibold text-slate-600 dark:text-slate-300">Sex</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" id="day-6" class="peer hidden">
-                            <span class="block py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 font-semibold text-slate-400 dark:text-slate-400">Sáb</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" id="day-0" class="peer hidden">
-                            <span class="block py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 font-semibold text-slate-400 dark:text-slate-400">Dom</span>
-                        </label>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Dias da semana e Metas Personalizadas:</label>
+                    <div class="space-y-2 bg-slate-50 dark:bg-slate-700/40 p-3 rounded-xl border border-slate-200 dark:border-slate-600">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <div class="flex items-center justify-between gap-2 p-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                                <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700 dark:text-slate-200">
+                                    <input type="checkbox" id="day-1" onchange="toggleDayTargetInput(1)" class="rounded text-emerald-600 focus:ring-emerald-500"> Seg
+                                </label>
+                                <input type="number" step="0.01" min="0" id="dayTarget-1" placeholder="Padrão" disabled class="w-24 px-2 py-1 text-right text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded focus:outline-none disabled:opacity-50 dark:text-white">
+                            </div>
+                            <div class="flex items-center justify-between gap-2 p-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                                <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700 dark:text-slate-200">
+                                    <input type="checkbox" id="day-2" onchange="toggleDayTargetInput(2)" class="rounded text-emerald-600 focus:ring-emerald-500"> Ter
+                                </label>
+                                <input type="number" step="0.01" min="0" id="dayTarget-2" placeholder="Padrão" disabled class="w-24 px-2 py-1 text-right text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded focus:outline-none disabled:opacity-50 dark:text-white">
+                            </div>
+                            <div class="flex items-center justify-between gap-2 p-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                                <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700 dark:text-slate-200">
+                                    <input type="checkbox" id="day-3" onchange="toggleDayTargetInput(3)" class="rounded text-emerald-600 focus:ring-emerald-500"> Qua
+                                </label>
+                                <input type="number" step="0.01" min="0" id="dayTarget-3" placeholder="Padrão" disabled class="w-24 px-2 py-1 text-right text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded focus:outline-none disabled:opacity-50 dark:text-white">
+                            </div>
+                            <div class="flex items-center justify-between gap-2 p-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                                <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700 dark:text-slate-200">
+                                    <input type="checkbox" id="day-4" onchange="toggleDayTargetInput(4)" class="rounded text-emerald-600 focus:ring-emerald-500"> Qui
+                                </label>
+                                <input type="number" step="0.01" min="0" id="dayTarget-4" placeholder="Padrão" disabled class="w-24 px-2 py-1 text-right text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded focus:outline-none disabled:opacity-50 dark:text-white">
+                            </div>
+                            <div class="flex items-center justify-between gap-2 p-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                                <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700 dark:text-slate-200">
+                                    <input type="checkbox" id="day-5" onchange="toggleDayTargetInput(5)" class="rounded text-emerald-600 focus:ring-emerald-500"> Sex
+                                </label>
+                                <input type="number" step="0.01" min="0" id="dayTarget-5" placeholder="Padrão" disabled class="w-24 px-2 py-1 text-right text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded focus:outline-none disabled:opacity-50 dark:text-white">
+                            </div>
+                            <div class="flex items-center justify-between gap-2 p-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                                <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-indigo-600 dark:text-indigo-400">
+                                    <input type="checkbox" id="day-6" onchange="toggleDayTargetInput(6)" class="rounded text-indigo-600 focus:ring-indigo-500"> Sáb
+                                </label>
+                                <input type="number" step="0.01" min="0" id="dayTarget-6" placeholder="Padrão" disabled class="w-24 px-2 py-1 text-right text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded focus:outline-none disabled:opacity-50 dark:text-white">
+                            </div>
+                            <div class="flex items-center justify-between gap-2 p-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 sm:col-span-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer font-semibold text-indigo-600 dark:text-indigo-400">
+                                    <input type="checkbox" id="day-0" onchange="toggleDayTargetInput(0)" class="rounded text-indigo-600 focus:ring-indigo-500"> Dom
+                                </label>
+                                <input type="number" step="0.01" min="0" id="dayTarget-0" placeholder="Padrão" disabled class="w-24 px-2 py-1 text-right text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded focus:outline-none disabled:opacity-50 dark:text-white">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -879,14 +895,14 @@
 
         // Caixinhas Padrão
         const DEFAULT_BOXES = [
-            { id: 'box-0', name: 'Empréstimo Bancário / Giro', category: '🤝 Empréstimos & Financiamentos', dailyTarget: 80, monthlyTarget: 1600, activeDays: [1, 2, 3, 4, 5], color: '#f59e0b', icon: 'fa-hand-holding-hand' },
-            { id: 'box-1', name: 'Aluguel do Imóvel', category: '🏢 Custos Fixos da Empresa', dailyTarget: 100, monthlyTarget: 2000, activeDays: [1, 2, 3, 4, 5], color: '#3b82f6', icon: 'fa-house' },
-            { id: 'box-2', name: 'Energia & Água', category: '🏢 Custos Fixos da Empresa', dailyTarget: 25, monthlyTarget: 500, activeDays: [1, 2, 3, 4, 5], color: '#eab308', icon: 'fa-bolt' },
-            { id: 'box-3', name: 'Folha de Pagamento', category: '👥 Gastos com Funcionários', dailyTarget: 150, monthlyTarget: 3000, activeDays: [1, 2, 3, 4, 5], color: '#10b981', icon: 'fa-users-gear' },
-            { id: 'box-4', name: 'Pro-labore Sócios', category: '👤 Gastos Pessoais / Pro-labore', dailyTarget: 100, monthlyTarget: 2000, activeDays: [1, 2, 3, 4, 5], color: '#06b6d4', icon: 'fa-user-tie' },
-            { id: 'box-5', name: 'Fornecedores Principais', category: '🚚 Fornecedores & Estoque', dailyTarget: 200, monthlyTarget: 4000, activeDays: [1, 2, 3, 4, 5], color: '#8b5cf6', icon: 'fa-truck-field' },
-            { id: 'box-6', name: 'Impostos & DAS', category: '📄 Impostos & Taxas', dailyTarget: 40, monthlyTarget: 800, activeDays: [1, 2, 3, 4, 5], color: '#ef4444', icon: 'fa-file-invoice-dollar' },
-            { id: 'box-7', name: 'Reserva de Emergência', category: '🐷 Reservas & Investimentos', dailyTarget: 50, monthlyTarget: 1000, activeDays: [1, 2, 3, 4, 5], color: '#ec4899', icon: 'fa-piggy-bank' }
+            { id: 'box-0', name: 'Empréstimo Bancário / Giro', category: '🤝 Empréstimos & Financiamentos', dailyTarget: 80, monthlyTarget: 1600, activeDays: [1, 2, 3, 4, 5], dayTargets: {}, color: '#f59e0b', icon: 'fa-hand-holding-hand' },
+            { id: 'box-1', name: 'Aluguel do Imóvel', category: '🏢 Custos Fixos da Empresa', dailyTarget: 100, monthlyTarget: 2000, activeDays: [1, 2, 3, 4, 5], dayTargets: {}, color: '#3b82f6', icon: 'fa-house' },
+            { id: 'box-2', name: 'Energia & Água', category: '🏢 Custos Fixos da Empresa', dailyTarget: 25, monthlyTarget: 500, activeDays: [1, 2, 3, 4, 5], dayTargets: {}, color: '#eab308', icon: 'fa-bolt' },
+            { id: 'box-3', name: 'Folha de Pagamento', category: '👥 Gastos com Funcionários', dailyTarget: 150, monthlyTarget: 3000, activeDays: [1, 2, 3, 4, 5], dayTargets: {}, color: '#10b981', icon: 'fa-users-gear' },
+            { id: 'box-4', name: 'Pro-labore Sócios', category: '👤 Gastos Pessoais / Pro-labore', dailyTarget: 100, monthlyTarget: 2000, activeDays: [1, 2, 3, 4, 5], dayTargets: {}, color: '#06b6d4', icon: 'fa-user-tie' },
+            { id: 'box-5', name: 'Fornecedores Principais', category: '🚚 Fornecedores & Estoque', dailyTarget: 200, monthlyTarget: 4000, activeDays: [1, 2, 3, 4, 5], dayTargets: {}, color: '#8b5cf6', icon: 'fa-truck-field' },
+            { id: 'box-6', name: 'Impostos & DAS', category: '📄 Impostos & Taxas', dailyTarget: 40, monthlyTarget: 800, activeDays: [1, 2, 3, 4, 5], dayTargets: {}, color: '#ef4444', icon: 'fa-file-invoice-dollar' },
+            { id: 'box-7', name: 'Reserva de Emergência', category: '🐷 Reservas & Investimentos', dailyTarget: 50, monthlyTarget: 1000, activeDays: [1, 2, 3, 4, 5], dayTargets: {}, color: '#ec4899', icon: 'fa-piggy-bank' }
         ];
 
         function getTodayString() {
@@ -1270,6 +1286,14 @@
             return appState.boxes.filter(b => (b.activeDays || []).includes(dayOfWeek));
         }
 
+        // Função auxiliar para obter a meta de um dia específico para uma caixinha
+        function getTargetForBoxDay(box, dayOfWeek) {
+            if (box.dayTargets && box.dayTargets[dayOfWeek] !== undefined && box.dayTargets[dayOfWeek] !== '' && !isNaN(box.dayTargets[dayOfWeek])) {
+                return Number(box.dayTargets[dayOfWeek]);
+            }
+            return Number(box.dailyTarget || 0);
+        }
+
         function renderKPIs() {
             const brandTitle = document.getElementById('brandTitle');
             const companySubtextEl = document.getElementById('companySubtext');
@@ -1293,6 +1317,9 @@
             const dateAllocations = appState.allocations[appState.currentDate] || {};
             const currentWeekKey = getCalendarWeekKey(appState.currentDate);
 
+            const partsDate = appState.currentDate.split('-');
+            const currentDayOfWeek = new Date(partsDate[0], partsDate[1] - 1, partsDate[2]).getDay();
+
             let dailyTargetTotal = 0;
             let allocatedCash = 0;
             let allocatedBank = 0;
@@ -1300,13 +1327,11 @@
             let dailyPendingVal = 0;
 
             activeBoxes.forEach(box => {
-                dailyTargetTotal += box.dailyTarget;
+                const boxTargetToday = getTargetForBoxDay(box, currentDayOfWeek);
+                dailyTargetTotal += boxTargetToday;
+
                 const alloc = dateAllocations[box.id];
                 const isAllocatedToday = alloc && alloc.allocated;
-
-                const parts = appState.currentDate.split('-');
-                const currentDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                const currentDayOfWeek = currentDateObj.getDay();
 
                 let hasEntryForThisWeekdayInCurrentWeek = false;
                 Object.keys(appState.allocations).forEach(dKey => {
@@ -1344,7 +1369,7 @@
                 }
 
                 if (isAllocatedToday) {
-                    const cash = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : box.dailyTarget);
+                    const cash = Number(alloc.cashAmount !== undefined ? alloc.cashAmount : boxTargetToday);
                     const bank = Number(alloc.bankAmount !== undefined ? alloc.bankAmount : 0);
                     allocatedCash += cash;
                     allocatedBank += bank;
@@ -1352,7 +1377,7 @@
 
                 if (!weekGoalFulfilled) {
                     pendingCount++;
-                    dailyPendingVal += box.dailyTarget;
+                    dailyPendingVal += boxTargetToday;
                 }
             });
 
@@ -1942,16 +1967,16 @@
             const dateAllocations = appState.allocations[appState.currentDate] || {};
             const currentWeekKey = getCalendarWeekKey(appState.currentDate);
 
+            const partsDate = appState.currentDate.split('-');
+            const currentDayOfWeek = new Date(partsDate[0], partsDate[1] - 1, partsDate[2]).getDay();
+
             const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
             let html = '';
             boxesToRender.forEach(box => {
                 const alloc = dateAllocations[box.id] || { allocated: false, cashAmount: 0, bankAmount: 0 };
                 const isAllocatedToday = alloc.allocated;
-
-                const parts = appState.currentDate.split('-');
-                const currentDateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-                const currentDayOfWeek = currentDateObj.getDay();
+                const boxTargetToday = getTargetForBoxDay(box, currentDayOfWeek);
 
                 let hasEntryForThisWeekdayInCurrentWeek = false;
                 Object.keys(appState.allocations).forEach(dKey => {
@@ -2053,7 +2078,7 @@
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                                        <span>Meta Diária: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(box.dailyTarget)}</strong></span>
+                                        <span>Meta Hoje: <strong class="text-slate-700 dark:text-slate-200">${formatCurrency(boxTargetToday)}</strong></span>
                                         ${monthlyTarget > 0 ? `<span>&bull; Meta Mensal: <strong>${formatCurrency(monthlyTarget)}</strong></span>` : ''}
                                     </div>
                                 </div>
@@ -2099,7 +2124,7 @@
                                         <span class="hidden lg:inline">Transferir</span>
                                     </button>
 
-                                    <!-- Botão 5: Corrigir Entrada (Exibido após o + Extra quando a caixinha estiver alocada no dia) -->
+                                    <!-- Botão 5: Corrigir Entrada -->
                                     ${isGoalFulfilledForDay ? `
                                         <button onclick="openDepositModal('${box.id}', 'edit')" title="Corrigir / Editar Entrada Salva" class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-emerald-100 hover:text-emerald-800 transition flex items-center gap-1 border border-slate-200 dark:border-slate-600">
                                             <i class="fa-solid fa-pen text-[10px]"></i>
@@ -2306,6 +2331,16 @@
             const colorInput = document.getElementById('boxColor');
             const iconSelect = document.getElementById('boxIcon');
 
+            for (let i = 0; i < 7; i++) {
+                const dayCb = document.getElementById(`day-${i}`);
+                const dayInput = document.getElementById(`dayTarget-${i}`);
+                if (dayCb) dayCb.checked = false;
+                if (dayInput) {
+                    dayInput.value = '';
+                    dayInput.disabled = true;
+                }
+            }
+
             if (boxId) {
                 const box = appState.boxes.find(b => b.id === boxId);
                 if (box) {
@@ -2331,10 +2366,20 @@
                     if (colorInput) colorInput.value = box.color || '#10b981';
                     if (iconSelect) iconSelect.value = box.icon || 'fa-vault';
 
-                    for (let i = 0; i < 7; i++) {
+                    const activeDays = box.activeDays || [];
+                    const dayTargets = box.dayTargets || {};
+
+                    activeDays.forEach(i => {
                         const dayCb = document.getElementById(`day-${i}`);
-                        if (dayCb) dayCb.checked = (box.activeDays || []).includes(i);
-                    }
+                        const dayInput = document.getElementById(`dayTarget-${i}`);
+                        if (dayCb) dayCb.checked = true;
+                        if (dayInput) {
+                            dayInput.disabled = false;
+                            if (dayTargets[i] !== undefined) {
+                                dayInput.value = dayTargets[i];
+                            }
+                        }
+                    });
                 }
             } else {
                 if (title) title.innerText = 'Nova Caixinha';
@@ -2346,14 +2391,29 @@
                 if (iconSelect) iconSelect.value = 'fa-vault';
                 if (customCatInput) customCatInput.classList.add('hidden');
 
-                for (let i = 0; i < 7; i++) {
+                for (let i = 1; i <= 5; i++) {
                     const dayCb = document.getElementById(`day-${i}`);
-                    if (dayCb) dayCb.checked = (i >= 1 && i <= 5);
+                    const dayInput = document.getElementById(`dayTarget-${i}`);
+                    if (dayCb) dayCb.checked = true;
+                    if (dayInput) dayInput.disabled = false;
                 }
             }
 
             const modal = document.getElementById('boxModal');
             if (modal) modal.classList.remove('hidden');
+        };
+
+        window.toggleDayTargetInput = function(dayIdx) {
+            const dayCb = document.getElementById(`day-${dayIdx}`);
+            const dayInput = document.getElementById(`dayTarget-${dayIdx}`);
+            if (dayCb && dayInput) {
+                if (dayCb.checked) {
+                    dayInput.disabled = false;
+                } else {
+                    dayInput.disabled = true;
+                    dayInput.value = '';
+                }
+            }
         };
 
         window.saveBox = function(e) {
@@ -2378,9 +2438,18 @@
             const icon = document.getElementById('boxIcon').value;
 
             const activeDays = [];
+            const dayTargets = {};
+
             for (let i = 0; i < 7; i++) {
                 const dayCb = document.getElementById(`day-${i}`);
-                if (dayCb && dayCb.checked) activeDays.push(i);
+                const dayInput = document.getElementById(`dayTarget-${i}`);
+                if (dayCb && dayCb.checked) {
+                    activeDays.push(i);
+                    const customVal = dayInput ? parseFloat(dayInput.value) : NaN;
+                    if (!isNaN(customVal) && customVal >= 0) {
+                        dayTargets[i] = customVal;
+                    }
+                }
             }
 
             if (boxId) {
@@ -2393,6 +2462,7 @@
                         dailyTarget,
                         monthlyTarget,
                         activeDays,
+                        dayTargets,
                         color,
                         icon
                     };
@@ -2405,6 +2475,7 @@
                     dailyTarget,
                     monthlyTarget,
                     activeDays,
+                    dayTargets,
                     color,
                     icon
                 };
@@ -2510,14 +2581,20 @@
             if (!box) return;
 
             const dayCheckboxes = document.getElementsByName('depositDay');
-            let count = 0;
+            let totalAutoAmount = 0;
+            let checkedCount = 0;
+
             for (let cb of dayCheckboxes) {
-                if (cb.checked) count++;
+                if (cb.checked) {
+                    const dayIdx = parseInt(cb.value);
+                    totalAutoAmount += getTargetForBoxDay(box, dayIdx);
+                    checkedCount++;
+                }
             }
 
             const amountInput = document.getElementById('depositAmount');
             if (amountInput) {
-                amountInput.value = (box.dailyTarget * Math.max(1, count)).toFixed(2);
+                amountInput.value = (checkedCount > 0 ? totalAutoAmount : box.dailyTarget).toFixed(2);
             }
         };
 
