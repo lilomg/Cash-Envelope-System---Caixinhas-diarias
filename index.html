@@ -1335,7 +1335,7 @@
             }
 
             // Define se está em modo de edição/correção
-            const isEditing = depositType === 'edit';
+            const isEditing = (depositType === 'edit');
             appState.editingDeposit = isEditing;
 
             // Busca lançamento prévio se for uma edição
@@ -1350,7 +1350,7 @@
             const typeRadios = document.getElementsByName('depositType');
             for (let r of typeRadios) {
                 r.checked = (r.value === activeType);
-                r.disabled = false; // Permite trocar entre meta e extra ao corrigir
+                r.disabled = false; // Permite trocar livremente
             }
 
             window.toggleDepositTypeUI();
@@ -1372,7 +1372,7 @@
                     r.checked = (r.value === destVal);
                 }
 
-                if (dAmount) dAmount.value = destVal === 'bank' ? bankVal : (cashVal + bankVal);
+                if (dAmount) dAmount.value = (destVal === 'bank' ? bankVal : (cashVal + bankVal));
                 if (dNote) dNote.value = existingAlloc.adHocNotes || '';
 
                 if (existingAlloc.registeredDays && existingAlloc.registeredDays.length > 0) {
@@ -1443,7 +1443,7 @@
                 if (r.checked) dest = r.value;
             }
 
-            // Em modo de correção (editingDeposit), aceita valor 0 para zerar se necessário
+            // Em modo de correção (appState.editingDeposit), permite valor 0 para zerar lançamentos feitos por engano
             if (amount < 0 || (!appState.editingDeposit && amount === 0)) {
                 showToast('Informe um valor de entrada válido!', 'error');
                 return;
@@ -1458,7 +1458,7 @@
             const prevBank = Number(existing.bankAmount || 0);
 
             if (appState.editingDeposit) {
-                // Correção direta: substitui o lançamento anterior pelos novos dados
+                // Correção/Edição direta: reescreve os dados com as novas escolhas do usuário
                 appState.allocations[date][boxId] = {
                     allocated: true,
                     registeredDays: selectedDays,
@@ -1484,101 +1484,11 @@
                 };
             }
 
-            appState.editingDeposit = false; // Limpa o estado de edição após salvar
+            appState.editingDeposit = false; // Reseta a flag de edição
             saveAllocationsToStorage();
             window.closeDepositModal();
             window.renderApp();
-            showToast(isExtra ? 'Entrada Extra registrada com sucesso!' : 'Lançamento corrigido e salvo com sucesso!');
-        };
-
-        window.toggleDepositTypeUI = function() {
-            const typeRadios = document.getElementsByName('depositType');
-            let isExtra = false;
-            for (let r of typeRadios) {
-                if (r.checked && r.value === 'extra') isExtra = true;
-            }
-
-            const daysWrapper = document.getElementById('depositDaysWrapper');
-            if (daysWrapper) {
-                if (isExtra) daysWrapper.classList.add('hidden');
-                else daysWrapper.classList.remove('hidden');
-            }
-
-            if (!isExtra) {
-                window.updateDepositAutoAmount();
-            }
-        };
-
-        window.saveDeposit = function(e) {
-            e.preventDefault();
-
-            const boxId = document.getElementById('depositBoxId').value;
-            const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
-            const date = document.getElementById('depositDate').value;
-            const note = document.getElementById('depositNote').value.trim();
-
-            const typeRadios = document.getElementsByName('depositType');
-            let isExtra = false;
-            for (let r of typeRadios) {
-                if (r.checked && r.value === 'extra') isExtra = true;
-            }
-
-            let selectedDays = [];
-            if (!isExtra) {
-                const dayCheckboxes = document.getElementsByName('depositDay');
-                for (let cb of dayCheckboxes) {
-                    if (cb.checked) {
-                        selectedDays.push(parseInt(cb.value));
-                    }
-                }
-
-                if (selectedDays.length === 0) {
-                    showToast('Selecione pelo menos um dia da semana para registrar esta entrada!', 'error');
-                    return;
-                }
-            }
-
-            const destRadios = document.getElementsByName('depositDestination');
-            let dest = 'cash';
-            for (let r of destRadios) {
-                if (r.checked) dest = r.value;
-            }
-
-            if (amount < 0 || (!editingDeposit && amount === 0)) {
-                showToast('Informe um valor de entrada válido!', 'error');
-                return;
-            }
-
-            if (!appState.allocations[date]) {
-                appState.allocations[date] = {};
-            }
-
-            const existing = appState.allocations[date][boxId] || {};
-            const prevCash = Number(existing.cashAmount || 0);
-            const prevBank = Number(existing.bankAmount || 0);
-
-            if (isExtra) {
-                appState.allocations[date][boxId] = {
-                    allocated: true,
-                    registeredDays: existing.registeredDays || [],
-                    cashAmount: prevCash + (dest === 'cash' ? amount : 0),
-                    bankAmount: prevBank + (dest === 'bank' ? amount : 0),
-                    adHocNotes: existing.adHocNotes ? `${existing.adHocNotes}; ${note || 'Aporte Extra'}` : (note || 'Aporte Extra')
-                };
-            } else {
-                appState.allocations[date][boxId] = {
-                    allocated: true,
-                    registeredDays: selectedDays,
-                    cashAmount: dest === 'cash' ? amount : prevCash,
-                    bankAmount: dest === 'bank' ? amount : prevBank,
-                    adHocNotes: existing.adHocNotes || ''
-                };
-            }
-
-            saveAllocationsToStorage();
-            window.closeDepositModal();
-            window.renderApp();
-            showToast(isExtra ? 'Entrada Extra registrada com sucesso!' : 'Entrada atualizada com sucesso!');
+            showToast(isExtra ? 'Entrada Extra registrada com sucesso!' : 'Lançamento salvo com sucesso!');
         };
 
         window.openWithdrawalModal = function(targetBoxId = null, withdrawalId = null) {
