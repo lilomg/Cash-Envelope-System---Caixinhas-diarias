@@ -1441,6 +1441,9 @@
                     // Soma a meta pendente da semana para esta caixinha (soma dos dias ativos da caixinha que ainda não foram cumpridos na semana atual)
                     activeDaysList.forEach(dayIdx => {
                         let dayHasEntry = false;
+                        if (currentDayOfWeek === dayIdx && isAllocatedToday) {
+                            dayHasEntry = true;
+                        }
                         Object.keys(appState.allocations).forEach(dKey => {
                             if (getCalendarWeekKey(dKey) === currentWeekKey) {
                                 const dAlloc = appState.allocations[dKey][box.id];
